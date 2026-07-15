@@ -31,7 +31,7 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 - [x] `core/config.py` con Pydantic Settings.
 - [x] Unificar `declarative_base` y declarar Base única.
 - [x] Introducir Alembic (esqueleto listo; falta migración inicial generada).
-- [ ] Estandarizar respuestas y errores; usar `response_model`.
+- [~] Estandarizar respuestas y errores; usar `response_model` (parcial: `/health`, `GET /api/usuarios/`).
 - [x] Tests con pytest de humo y guards de auth (401 sin token); faltan tests de login/QR con DB.
 - [x] `ruff` configurado (`ruff.toml`; lint en CI; sin `--fix` masivo aún).
 - [x] Docker Compose solo para MySQL (siguiente paso incremental).
@@ -60,8 +60,8 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 - [x] Autenticar endpoints mutables críticos (deletes, procesar_pagos, QR); falta auditoría completa.
 - [x] Transacciones atómicas para recarga/débito (`services/wallet.py` + `with_for_update`).
-- [ ] Ledger de movimientos (audit trail).
-- [ ] QR con expiración / payment intent firmado.
+- [x] Ledger de movimientos (audit trail).
+- [x] QR con expiración / payment intent firmado.
 - [x] Quitar pan/cvc del JWT de tarjeta; refresh tokens implementados (`POST /api/usuarios/refresh`).
 - [x] Convertir `procesar_pagos` en worker/cron en vez de polling desde el navegador.
 - [x] Reemplazar el BST en memoria por consultas SQL.
@@ -74,14 +74,14 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 - [ ] Confirmación de pago en tiempo real (WebSocket/SSE).
 - [ ] Evaluar PostgreSQL si el despliegue cloud lo requiere.
 - [ ] Deploy: Railway/Render/Fly.io (API) + Vercel/Netlify (frontend).
-- [ ] CHANGELOG y versionado semántico.
+- [x] CHANGELOG y versionado semántico (`CHANGELOG.md`, `version="0.2.0"` en FastAPI).
 
 **Done:** Flash desplegado, con dominio, HTTPS y experiencia moderna.
 
 ## Prioridades inmediatas (top 5)
 
-1. Sacar `SECRET_KEY` del código (riesgo crítico antes de GitHub).
-2. Centralizar la config de API en el frontend.
-3. Adoptar `full-stack-fastapi-template` como referencia de estructura.
-4. Modelar pagos con ledger + intents (estilo EasyPay) antes de una pasarela real.
-5. Docker solo para la base de datos primero (salto mínimo fuera de XAMPP).
+1. Unificar `controllers/*.js` en módulos ES (import/export, sin globals duplicados).
+2. Eliminar carpetas legacy (`api/`, `views/`, `controllers/`, `css/`) cuando Vite cubra todo el flujo.
+3. Desplegar en cloud: API (Railway/Render/Fly.io) + frontend estático (Vercel/Netlify) con HTTPS.
+4. [x] Blacklist de refresh tokens en logout (revocación server-side, no solo `localStorage.clear`).
+5. Guards de sesión unificados en todas las páginas (hoy solo `online.js` valida token de forma consistente).

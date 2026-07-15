@@ -1,21 +1,28 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_t
+from app.core.rate_limit import rate_limit
 from app.models.decode_qr import decode_qr_image
 from app.models.servicio import Servicio
+from app.services.qr_intent import crear_intent
 
 routerQR = APIRouter()
 
 
 @routerQR.post("/")
 async def decode_qr(
+    request: Request,
     qr_image: UploadFile = File(...),
     datos_tarjeta=Depends(verificar_token_t),
     db: Session = Depends(get_db),
 ):
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
+
+    id_tarjeta = datos_tarjeta.get("id_tarjeta")
+    rate_limit(f"qr:{id_tarjeta}", limit=20, window=60)
+
     try:
         image_data = await qr_image.read()
         qr_text = decode_qr_image(image_data)
@@ -52,8 +59,6 @@ def procesar_qr(qr_text: str, db: Session):
 
         data = {
             "id_servicio": id_servicio,
-            "nombre_servicio": servicio.nombre,
-            "imagen": servicio.img_servicio,
             "fecha": partes[1],
             "hora": partes[2],
             "monto": float(partes[3]),
@@ -61,7 +66,19 @@ def procesar_qr(qr_text: str, db: Session):
             "descripcion": partes[5],
             "id_estado": int(partes[6]),
         }
-        return data
+        intent = crear_intent(data)
+        servicio_info = {
+            "id_servicio": id_servicio,
+            "nombre_servicio": servicio.nombre,
+            "imagen": servicio.img_servicio,
+        }
+        return {
+            "estado": 1,
+            "intent": intent,
+            "servicio": servicio_info,
+            **servicio_info,
+            **data,
+        }
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Error en el formato del QR: {str(e)}")

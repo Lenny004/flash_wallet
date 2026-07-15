@@ -1,3 +1,14 @@
+function revokeRefreshToken() {
+  const refresh = localStorage.getItem('refresh_token');
+  if (!refresh) return;
+  const base = window.FLASH_API_BASE || '';
+  fetch(base + '/api/usuarios/logout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refresh })
+  }).catch(() => {});
+}
+
 async function refreshAccessTokens() {
   const refresh = localStorage.getItem('refresh_token');
   if (!refresh) return false;

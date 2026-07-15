@@ -1,11 +1,13 @@
 // Constante para establecer la ruta y parámetros de comunicación con la API en Flask.
 const API_HISTORIAL = window.FLASH_API_BASE + '/api/historial/';
 const API_TARJETA = window.FLASH_API_BASE + '/api/tarjeta/';
+const API_MOVIMIENTOS = window.FLASH_API_BASE + '/api/historial/movimientos';
 
 //Evento que se ejecuta cuando se carga la página web
 document.addEventListener('DOMContentLoaded', function () {
     readRows(API_HISTORIAL + 'read');
     datosTarjeta();
+    loadMovimientos();
 });
 
 /*
@@ -87,6 +89,88 @@ function fillTable(dataset) {
         `);
     });
     document.getElementById('tbhistorial').innerHTML = content.join('');
+}
+
+function loadMovimientos() {
+    const aviso = document.getElementById('movimientos-aviso');
+    const tbody = document.getElementById('tbmovimientos');
+    if (!localStorage.getItem('token_tarjeta')) {
+        if (aviso) {
+            aviso.hidden = false;
+            aviso.textContent = 'No se pudieron cargar los movimientos.';
+        }
+        return;
+    }
+    apiFetchAuth(API_MOVIMIENTOS, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(function (request) {
+        if (request.ok) {
+            return request.json();
+        }
+        throw new Error(request.statusText);
+    })
+    .then(function (response) {
+        if (response.estado === 1) {
+            fillMovimientosTable(response.dataset);
+        } else {
+            throw new Error(response.exception || 'No se pudieron cargar los movimientos.');
+        }
+    })
+    .catch(function (error) {
+        console.log('Movimientos:', error);
+        if (aviso) {
+            aviso.hidden = false;
+            aviso.textContent = 'No se pudieron cargar los movimientos.';
+        }
+        if (tbody) {
+            tbody.innerHTML = '';
+        }
+    });
+}
+
+function formatFechaMovimiento(creadoEn) {
+    const fecha = new Date(creadoEn);
+    if (isNaN(fecha.getTime())) {
+        return creadoEn || '-';
+    }
+    return fecha.toLocaleString('es-MX', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatMontoMovimiento(valor) {
+    return '$' + parseFloat(valor).toFixed(2);
+}
+
+function fillMovimientosTable(dataset) {
+    const tbody = document.getElementById('tbmovimientos');
+    if (!tbody) {
+        return;
+    }
+    if (!dataset || dataset.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">No hay movimientos registrados.</td></tr>';
+        return;
+    }
+    let content = [];
+    dataset.forEach(function (row) {
+        content.push(`
+            <tr>
+                <td>${formatFechaMovimiento(row.creado_en)}</td>
+                <td>${row.tipo}</td>
+                <td>${formatMontoMovimiento(row.monto)}</td>
+                <td>${formatMontoMovimiento(row.saldo_anterior)}</td>
+                <td>${formatMontoMovimiento(row.saldo_nuevo)}</td>
+                <td>${row.referencia || '-'}</td>
+            </tr>
+        `);
+    });
+    tbody.innerHTML = content.join('');
 }
 
 function datosTarjeta() {

@@ -7,8 +7,9 @@ from app.api.deps import get_db, verificar_token_t
 from app.models.estado import Estado
 from app.models.servicio import Servicio
 from app.models.transaccion import Transaccion
-from app.schemas.transaccion_schema import TransaccionCreate
+from app.schemas.transaccion_schema import TransaccionDesdeIntent
 from app.services.payments_worker import procesar_pagos_tarjeta
+from app.services.qr_intent import verificar_intent
 
 routerTransaccion = APIRouter()
 
@@ -69,22 +70,34 @@ def obtener_facturas(datos_tarjeta=Depends(verificar_token_t), db: Session = Dep
 
 
 @routerTransaccion.post("/crear")
-def crear_transaccion(body: TransaccionCreate, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+def crear_transaccion(body: TransaccionDesdeIntent, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
     Crea una nueva transacción en la base de datos.
+    Requiere un payment intent firmado obtenido al escanear el QR.
     """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
 
     try:
+        intent = verificar_intent(
+            {
+                "id_servicio": body.id_servicio,
+                "monto": body.monto,
+                "frecuencia": body.frecuencia,
+                "descripcion": body.descripcion,
+                "exp": body.exp,
+                "sig": body.sig,
+            }
+        )
+
         nueva_transaccion = Transaccion(
             fecha_transaccion=body.fecha_transaccion,
             hora_transaccion=body.hora_transaccion,
-            monto=body.monto,
-            frecuencia=body.frecuencia,
-            descripcion=body.descripcion,
+            monto=intent["monto"],
+            frecuencia=intent["frecuencia"],
+            descripcion=intent["descripcion"],
             id_tarjeta=datos_tarjeta.get("id_tarjeta"),
-            id_servicio=body.id_servicio,
+            id_servicio=intent["id_servicio"],
             id_estado=body.id_estado,
         )
 

@@ -1,19 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_U
 from app.api.routes.tarjeta import crear_tarjeta_usuario
+from app.core.rate_limit import rate_limit
 from app.core.security import crear_access_token, crear_refresh_token, verificar_refresh_token
+from app.core.token_blacklist import revoke
 from app.models.tarjeta import Tarjeta
 from app.models.usuarios import Usuario
-from app.schemas.usuario_schema import LoginRequest, RefreshRequest, UsuarioCreate, UsuarioUpdate
+from app.schemas.usuario_schema import (
+    HayUsuariosResponse,
+    LoginRequest,
+    RefreshRequest,
+    UsuarioCreate,
+    UsuarioUpdate,
+)
 
 routerUsuario = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@routerUsuario.get("/")
+@routerUsuario.get("/", response_model=HayUsuariosResponse)
 def obtener_usuarios(db: Session = Depends(get_db)):
     """
     Indica si existen usuarios registrados (primer uso), sin exponer datos sensibles.
@@ -68,11 +76,14 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
     }
 
 
-@routerUsuario.post("/login")
-def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
+@routerUsuario.post("/login", response_model=None)
+def login_usuario(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     """
     Verifica las credenciales del usuario.
     """
+    client_ip = request.client.host if request.client else "unknown"
+    rate_limit(f"login:{client_ip}", limit=5, window=60)
+
     usuario = db.query(Usuario).filter(Usuario.usuario == body.usuario).first()
 
     if not usuario or not pwd_context.verify(body.contra, usuario.contra):
@@ -110,7 +121,7 @@ def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
     }
 
 
-@routerUsuario.post("/refresh")
+@routerUsuario.post("/refresh", response_model=None)
 def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
     """
     Renueva los access tokens usando un refresh token válido.
@@ -150,6 +161,15 @@ def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
         "token_usuario": token_usuario,
         "token_tarjeta": token_tarjeta,
     }
+
+
+@routerUsuario.post("/logout", response_model=None)
+def logout_usuario(body: RefreshRequest):
+    """
+    Revoca el refresh token (blacklist en memoria). Auth opcional.
+    """
+    revoke(body.refresh_token)
+    return {"estado": 1, "mensaje": "Sesión cerrada correctamente."}
 
 
 @routerUsuario.get("/readOne")
