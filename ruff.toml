@@ -1,0 +1,13 @@
+target-version = "py312"
+line-length = 100
+
+exclude = [
+    ".venv",
+    "alembic/versions",
+    "backend/alembic/versions",
+    "resources",
+]
+
+[lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
