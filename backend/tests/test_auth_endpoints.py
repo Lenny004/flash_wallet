@@ -21,6 +21,28 @@ def test_historial_delete_sin_token_retorna_401(client):
     assert response.status_code == 401
 
 
+def test_movimientos_sin_token_401(client):
+    response = client.get("/api/historial/movimientos")
+    assert response.status_code == 401
+
+
+def test_crear_transaccion_sin_intent_falla(client):
+    """POST /crear exige token antes que exp/sig; sin auth → 401."""
+    response = client.post(
+        "/api/transaccion/crear",
+        json={
+            "fecha_transaccion": "2026-07-14",
+            "hora_transaccion": "10:30:00",
+            "monto": 100.0,
+            "frecuencia": 1,
+            "descripcion": "Test sin intent",
+            "id_servicio": 1,
+            "id_estado": 1,
+        },
+    )
+    assert response.status_code == 401
+
+
 def test_factura_delete_sin_token_retorna_401(client):
     response = client.post("/api/factura/delete", json={"id_factura": 1})
     assert response.status_code == 401
