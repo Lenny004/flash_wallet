@@ -1,51 +1,62 @@
+/**
+ * @file Página de inicio de sesión: verificación de estado, login y toggle de contraseña.
+ */
+
 import { getApiBase } from '../lib/auth';
 
 declare const Swal: {
   fire: (options: Record<string, unknown>) => Promise<unknown>;
 };
 
-const API_LOGIN = `${getApiBase()}/api/usuarios/`;
+const urlApiLogin = `${getApiBase()}/api/usuarios/`;
 
-type AlertType = 1 | 2 | 3 | 4 | 5;
+/** Códigos de tipo de alerta SweetAlert usados en la página. */
+type TipoAlerta = 1 | 2 | 3 | 4 | 5;
 
-function sweetAlert(type: AlertType, text: string, url?: string): void {
-  let title: string;
-  let icon: string;
-  switch (type) {
+/**
+ * Muestra una alerta SweetAlert según el tipo indicado.
+ * @param tipoAlerta - 1 éxito, 2 error, 3 advertencia, 4 aviso, 5 campos vacíos.
+ * @param texto - Mensaje a mostrar al usuario.
+ * @param urlRedireccion - URL opcional; si se indica, redirige al confirmar.
+ */
+function mostrarAlerta(tipoAlerta: TipoAlerta, texto: string, urlRedireccion?: string): void {
+  let titulo: string;
+  let icono: string;
+  switch (tipoAlerta) {
     case 1:
-      title = 'Éxito';
-      icon = 'success';
+      titulo = 'Éxito';
+      icono = 'success';
       break;
     case 2:
-      title = 'Error';
-      icon = 'error';
+      titulo = 'Error';
+      icono = 'error';
       break;
     case 3:
-      title = 'Advertencia';
-      icon = 'warning';
+      titulo = 'Advertencia';
+      icono = 'warning';
       break;
     case 4:
-      title = 'Aviso';
-      icon = 'info';
+      titulo = 'Aviso';
+      icono = 'info';
       break;
     case 5:
-      title = 'Campos Vacios';
-      icon = 'warning';
+      titulo = 'Campos Vacios';
+      icono = 'warning';
       break;
   }
 
-  if (url) {
+  if (urlRedireccion) {
     Swal.fire({
-      title,
-      text,
-      icon,
+      title: titulo,
+      text: texto,
+      icon: icono,
       confirmButtonText: 'Aceptar',
       allowOutsideClick: false,
       allowEscapeKey: false,
       allowEnterKey: true,
       stopKeydownPropagation: false,
     }).then(() => {
-      location.href = url;
+      location.href = urlRedireccion;
     });
   } else {
     Swal.fire({
@@ -53,9 +64,9 @@ function sweetAlert(type: AlertType, text: string, url?: string): void {
       position: 'bottom-end',
       timer: 5000,
       timerProgressBar: true,
-      title,
-      text,
-      icon,
+      title: titulo,
+      text: texto,
+      icon: icono,
       color: '#9e2d2d',
       background: '#fffff',
       customClass: {
@@ -67,14 +78,16 @@ function sweetAlert(type: AlertType, text: string, url?: string): void {
   }
 }
 
-interface UsuariosCheckResponse {
+/** Respuesta del GET inicial que verifica sesión y existencia de usuarios. */
+interface RespuestaVerificacionUsuarios {
   session?: boolean;
   hay_usuarios?: boolean;
   estado?: number;
   exception?: string;
 }
 
-interface LoginResponse {
+/** Respuesta del endpoint de login con tokens y mensajes. */
+interface RespuestaLogin {
   token_usuario?: string;
   token_tarjeta?: string;
   refresh_token?: string;
@@ -83,14 +96,14 @@ interface LoginResponse {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  fetch(API_LOGIN, { method: 'GET' })
-    .then((request) => {
-      if (request.ok) {
-        request.json().then((response: UsuariosCheckResponse) => {
-          if (response.session) {
+  fetch(urlApiLogin, { method: 'GET' })
+    .then((respuestaApi) => {
+      if (respuestaApi.ok) {
+        respuestaApi.json().then((datos: RespuestaVerificacionUsuarios) => {
+          if (datos.session) {
             location.href = 'dashboard.html';
-          } else if (response.hay_usuarios === false || response.estado === 0) {
-            sweetAlert(3, response.exception || 'No hay usuarios registrados.', 'registro.html');
+          } else if (datos.hay_usuarios === false || datos.estado === 0) {
+            mostrarAlerta(3, datos.exception || 'No hay usuarios registrados.', 'registro.html');
           } else {
             Swal.fire({
               title: 'Bienvenido a Flash',
@@ -108,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       } else {
-        sweetAlert(3, 'No se pudo verificar el estado de usuarios.');
+        mostrarAlerta(3, 'No se pudo verificar el estado de usuarios.');
       }
     })
     .catch((error: unknown) => {
@@ -116,53 +129,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-const loginForm = document.getElementById('login_form');
-loginForm?.addEventListener('submit', (event) => {
-  event.preventDefault();
+const formularioLogin = document.getElementById('login_form');
+formularioLogin?.addEventListener('submit', (evento) => {
+  evento.preventDefault();
 
   const usuario = (document.getElementById('usuario') as HTMLInputElement).value;
   const contra = (document.getElementById('contra') as HTMLInputElement).value;
 
-  fetch(`${API_LOGIN}login`, {
+  fetch(`${urlApiLogin}login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ usuario, contra }),
   })
-    .then((response) =>
-      response.json().then((data: LoginResponse) => {
-        if (!response.ok) {
-          throw new Error(data.detail || 'Error desconocido');
+    .then((respuestaApi) =>
+      respuestaApi.json().then((datos: RespuestaLogin) => {
+        if (!respuestaApi.ok) {
+          throw new Error(datos.detail || 'Error desconocido');
         }
-        return data;
+        return datos;
       }),
     )
-    .then((data) => {
-      if (data.token_usuario && data.token_tarjeta) {
-        localStorage.setItem('token_usuario', data.token_usuario);
-        localStorage.setItem('token_tarjeta', data.token_tarjeta);
-        if (data.refresh_token) {
-          localStorage.setItem('refresh_token', data.refresh_token);
+    .then((datosLogin) => {
+      if (datosLogin.token_usuario && datosLogin.token_tarjeta) {
+        localStorage.setItem('token_usuario', datosLogin.token_usuario);
+        localStorage.setItem('token_tarjeta', datosLogin.token_tarjeta);
+        if (datosLogin.refresh_token) {
+          localStorage.setItem('refresh_token', datosLogin.refresh_token);
         }
-        sweetAlert(1, data.mensaje || 'Inicio de sesión exitoso', 'dashboard.html');
+        mostrarAlerta(1, datosLogin.mensaje || 'Inicio de sesión exitoso', 'dashboard.html');
       } else {
-        sweetAlert(2, 'No se recibió un token válido del servidor.');
+        mostrarAlerta(2, 'No se recibió un token válido del servidor.');
       }
     })
     .catch((error: Error) => {
-      sweetAlert(2, error.message);
+      mostrarAlerta(2, error.message);
     });
 });
 
-const togglePassword = document.getElementById('togglePassword');
-togglePassword?.addEventListener('click', function (this: HTMLElement) {
-  const passwordField = document.getElementById('contra') as HTMLInputElement;
-  const passwordToggle = this.querySelector('img');
+const botonTogglePassword = document.getElementById('togglePassword');
+botonTogglePassword?.addEventListener('click', function (this: HTMLElement) {
+  const campoPassword = document.getElementById('contra') as HTMLInputElement;
+  const iconoToggle = this.querySelector('img');
 
-  if (passwordField.type === 'password') {
-    passwordField.type = 'text';
-    if (passwordToggle) passwordToggle.setAttribute('src', '/resources/icons/ver.png');
+  if (campoPassword.type === 'password') {
+    campoPassword.type = 'text';
+    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ver.png');
   } else {
-    passwordField.type = 'password';
-    if (passwordToggle) passwordToggle.setAttribute('src', '/resources/icons/ocultar.png');
+    campoPassword.type = 'password';
+    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ocultar.png');
   }
 });

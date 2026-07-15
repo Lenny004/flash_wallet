@@ -1,51 +1,62 @@
+/**
+ * @file Página de registro de usuario: envío del formulario y almacenamiento de tokens.
+ */
+
 import { getApiBase } from '../lib/auth';
 
 declare const Swal: {
   fire: (options: Record<string, unknown>) => Promise<unknown>;
 };
 
-const API_REGISTRO = `${getApiBase()}/api/usuarios/`;
+const urlApiRegistro = `${getApiBase()}/api/usuarios/`;
 
-type AlertType = 1 | 2 | 3 | 4 | 5;
+/** Códigos de tipo de alerta SweetAlert usados en la página. */
+type TipoAlerta = 1 | 2 | 3 | 4 | 5;
 
-function sweetAlert(type: AlertType, text: string, url?: string): void {
-  let title: string;
-  let icon: string;
-  switch (type) {
+/**
+ * Muestra una alerta SweetAlert según el tipo indicado.
+ * @param tipoAlerta - 1 éxito, 2 error, 3 advertencia, 4 aviso, 5 campos vacíos.
+ * @param texto - Mensaje a mostrar al usuario.
+ * @param urlRedireccion - URL opcional; si se indica, redirige al confirmar.
+ */
+function mostrarAlerta(tipoAlerta: TipoAlerta, texto: string, urlRedireccion?: string): void {
+  let titulo: string;
+  let icono: string;
+  switch (tipoAlerta) {
     case 1:
-      title = 'Éxito';
-      icon = 'success';
+      titulo = 'Éxito';
+      icono = 'success';
       break;
     case 2:
-      title = 'Error';
-      icon = 'error';
+      titulo = 'Error';
+      icono = 'error';
       break;
     case 3:
-      title = 'Advertencia';
-      icon = 'warning';
+      titulo = 'Advertencia';
+      icono = 'warning';
       break;
     case 4:
-      title = 'Aviso';
-      icon = 'info';
+      titulo = 'Aviso';
+      icono = 'info';
       break;
     case 5:
-      title = 'Campos Vacios';
-      icon = 'warning';
+      titulo = 'Campos Vacios';
+      icono = 'warning';
       break;
   }
 
-  if (url) {
+  if (urlRedireccion) {
     Swal.fire({
-      title,
-      text,
-      icon,
+      title: titulo,
+      text: texto,
+      icon: icono,
       confirmButtonText: 'Aceptar',
       allowOutsideClick: false,
       allowEscapeKey: false,
       allowEnterKey: true,
       stopKeydownPropagation: false,
     }).then(() => {
-      location.href = url;
+      location.href = urlRedireccion;
     });
   } else {
     Swal.fire({
@@ -53,9 +64,9 @@ function sweetAlert(type: AlertType, text: string, url?: string): void {
       position: 'bottom-end',
       timer: 5000,
       timerProgressBar: true,
-      title,
-      text,
-      icon,
+      title: titulo,
+      text: texto,
+      icon: icono,
       color: '#9e2d2d',
       background: '#fffff',
       customClass: {
@@ -67,7 +78,8 @@ function sweetAlert(type: AlertType, text: string, url?: string): void {
   }
 }
 
-interface RegistroResponse {
+/** Respuesta del endpoint de registro con usuario, tarjeta y tokens. */
+interface RespuestaRegistro {
   mensaje?: string;
   nuevo_usuario?: Record<string, unknown>;
   tarjeta?: Record<string, unknown>;
@@ -77,46 +89,46 @@ interface RegistroResponse {
   detail?: string;
 }
 
-const perfilForm = document.getElementById('perfil_form');
-perfilForm?.addEventListener('submit', (event) => {
-  event.preventDefault();
+const formularioRegistro = document.getElementById('perfil_form');
+formularioRegistro?.addEventListener('submit', (evento) => {
+  evento.preventDefault();
 
-  const form = event.target as HTMLFormElement;
-  const body = Object.fromEntries(new FormData(form));
+  const formulario = evento.target as HTMLFormElement;
+  const datosFormulario = Object.fromEntries(new FormData(formulario));
 
-  fetch(API_REGISTRO, {
+  fetch(urlApiRegistro, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(datosFormulario),
   })
-    .then((response) =>
-      response.json().then((data: RegistroResponse) => {
-        if (!response.ok) {
-          throw new Error(data.detail || response.statusText || 'Error desconocido');
+    .then((respuestaApi) =>
+      respuestaApi.json().then((datos: RespuestaRegistro) => {
+        if (!respuestaApi.ok) {
+          throw new Error(datos.detail || respuestaApi.statusText || 'Error desconocido');
         }
-        return data;
+        return datos;
       }),
     )
-    .then((response) => {
-      if (response.nuevo_usuario) {
-        localStorage.setItem('nuevo_usuario', JSON.stringify(response.nuevo_usuario));
+    .then((datosRegistro) => {
+      if (datosRegistro.nuevo_usuario) {
+        localStorage.setItem('nuevo_usuario', JSON.stringify(datosRegistro.nuevo_usuario));
       }
-      if (response.tarjeta) {
-        localStorage.setItem('tarjeta', JSON.stringify(response.tarjeta));
+      if (datosRegistro.tarjeta) {
+        localStorage.setItem('tarjeta', JSON.stringify(datosRegistro.tarjeta));
       }
-      if (response.token_usuario) {
-        localStorage.setItem('token_usuario', response.token_usuario);
+      if (datosRegistro.token_usuario) {
+        localStorage.setItem('token_usuario', datosRegistro.token_usuario);
       }
-      if (response.token_tarjeta) {
-        localStorage.setItem('token_tarjeta', response.token_tarjeta);
+      if (datosRegistro.token_tarjeta) {
+        localStorage.setItem('token_tarjeta', datosRegistro.token_tarjeta);
       }
-      if (response.refresh_token) {
-        localStorage.setItem('refresh_token', response.refresh_token);
+      if (datosRegistro.refresh_token) {
+        localStorage.setItem('refresh_token', datosRegistro.refresh_token);
       }
 
-      sweetAlert(1, response.mensaje || 'Registro exitoso', 'tarjeta_digital.html');
+      mostrarAlerta(1, datosRegistro.mensaje || 'Registro exitoso', 'tarjeta_digital.html');
     })
     .catch((error: Error) => {
-      sweetAlert(2, error.message);
+      mostrarAlerta(2, error.message);
     });
 });
