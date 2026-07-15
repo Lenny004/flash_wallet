@@ -1,6 +1,6 @@
 // Constante para establecer la ruta y parámetros de comunicación con la API en Flask.
-const API_HISTORIAL = 'http://127.0.0.1:8000/api/historial/'; // Cambia según la ruta de tu servidor FastAPI
-const API_TARJETA = 'http://127.0.0.1:8000/api/tarjeta/';
+const API_HISTORIAL = window.FLASH_API_BASE + '/api/historial/';
+const API_TARJETA = window.FLASH_API_BASE + '/api/tarjeta/';
 const token_tarjeta = localStorage.getItem('token_tarjeta');  // Obtener el token almacenado
 
 //Evento que se ejecuta cuando se carga la página web

@@ -1,6 +1,6 @@
 // Constante para establecer la ruta y parámetros de comunicación con la API en Flask.
-const API_LOGIN = 'http://127.0.0.1:8000/api/usuarios/'; // Cambia según la ruta de tu servidor Flask
-const URL_PROCESAR_PAGOS = 'http://127.0.0.1:8000/api/transaccion/procesar_pagos';
+const API_LOGIN = window.FLASH_API_BASE + '/api/usuarios/';
+const URL_PROCESAR_PAGOS = window.FLASH_API_BASE + '/api/transaccion/procesar_pagos';
 
 // Evento que se ejecuta cuando se carga la página web
 document.addEventListener('DOMContentLoaded', function () {
@@ -62,10 +62,16 @@ function cerrarSesion() {
 
 // Función para llamar al endpoint de procesamiento de pagos
 function procesarPagos() {
+    const token_tarjeta = localStorage.getItem('token_tarjeta');
+    if (!token_tarjeta) {
+        return;
+    }
     fetch(URL_PROCESAR_PAGOS, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'}
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token_tarjeta}`
+        }
     })
     .then(response => {
         if (!response.ok) {
@@ -80,7 +86,6 @@ function procesarPagos() {
     })
     .catch(error => {
         console.error("Error al procesar pagos:", error.message);
-        sweetAlert(2, error.message); // Muestra una alerta en caso de error
     });
 }
 

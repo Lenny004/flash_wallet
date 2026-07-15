@@ -1,5 +1,5 @@
-const API_HISTORIAL = 'http://127.0.0.1:8000/api/historial/';
-const API_TRANSACCION = 'http://127.0.0.1:8000/api/transaccion/';
+const API_HISTORIAL = window.FLASH_API_BASE + '/api/historial/';
+const API_TRANSACCION = window.FLASH_API_BASE + '/api/transaccion/';
 
 //Evento que se ejecuta cuando se carga la página web
 document.addEventListener('DOMContentLoaded', function () {

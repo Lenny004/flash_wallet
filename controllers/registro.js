@@ -1,4 +1,4 @@
-const API_REGISTRO = 'http://127.0.0.1:8000/api/usuarios/'; // Cambia según la ruta de tu servidor Flask
+const API_REGISTRO = window.FLASH_API_BASE + '/api/usuarios/';
 
 // Método manejador de eventos que se ejecuta cuando se envía el formulario de guardar.
 document.getElementById('perfil_form').addEventListener('submit', function (event) {

@@ -1,5 +1,5 @@
 // Constante para establecer la ruta y parámetros de comunicación con la API en Flask.
-const API_LOGIN = 'http://127.0.0.1:8000/api/usuarios/'; // Cambia según la ruta de tu servidor Flask
+const API_LOGIN = window.FLASH_API_BASE + '/api/usuarios/';
 
 document.addEventListener('DOMContentLoaded', function () {
     // Petición para consultar si existen usuarios registrados.
@@ -11,24 +11,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Comprobar si existe una sesión activa.
                 if (response.session) {
                     location.href = 'dashboard.html';
+                } else if (response.hay_usuarios === false || response.estado === 0) {
+                    sweetAlert(3, response.exception || 'No hay usuarios registrados.', 'registro.html');
                 } else {
-                    if (response.estado === 1) {
-                        Swal.fire({
-                            title: 'Bienvenido a Flash',
-                            text: 'Ya puede ingresar al sistema',
-                            imageUrl: '../resources/imgs/Flash_logo.png',
-                            imageWidth: 80,
-                            imageHeight: 80,
-                            imageAlt: 'Custom image',
-                            confirmButtonText: 'Continuar',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            allowEnterKey: true,
-                            stopKeydownPropagation: false,
-                        });
-                    } else {
-                        sweetAlert(3, response.exception, 'registro.html');
-                    }
+                    Swal.fire({
+                        title: 'Bienvenido a Flash',
+                        text: 'Ya puede ingresar al sistema',
+                        imageUrl: '../resources/imgs/Flash_logo.png',
+                        imageWidth: 80,
+                        imageHeight: 80,
+                        imageAlt: 'Custom image',
+                        confirmButtonText: 'Continuar',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: true,
+                        stopKeydownPropagation: false,
+                    });
                 }
             });
         } else {

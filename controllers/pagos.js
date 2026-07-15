@@ -1,4 +1,4 @@
-const API_TRANSACCION = 'http://127.0.0.1:8000/api/transaccion/';
+const API_TRANSACCION = window.FLASH_API_BASE + '/api/transaccion/';
 const token_tarjeta = localStorage.getItem('token_tarjeta');
 
 //Evento que se ejecuta cuando se carga la página web

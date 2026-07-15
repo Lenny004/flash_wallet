@@ -1,4 +1,4 @@
-const API_FACTURA = 'http://127.0.0.1:8000/api/factura/';
+const API_FACTURA = window.FLASH_API_BASE + '/api/factura/';
 const token_tarjeta = localStorage.getItem('token_tarjeta');
 
 //Evento que se ejecuta cuando se carga la página web

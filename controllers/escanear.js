@@ -1,5 +1,5 @@
-const API_DECODE = 'http://127.0.0.1:8000/api/decode_qr/';
-const API_TRANSACCION = 'http://127.0.0.1:8000/api/transaccion/';
+const API_DECODE = window.FLASH_API_BASE + '/api/decode_qr/';
+const API_TRANSACCION = window.FLASH_API_BASE + '/api/transaccion/';
 const token_tarjeta = localStorage.getItem('token_tarjeta');
 
 // Mostrar y procesar imagen del QR
