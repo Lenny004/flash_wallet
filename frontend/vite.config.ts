@@ -21,6 +21,7 @@ export default defineConfig({
       input: {
         main: resolve(root, 'index.html'),
         login: resolve(root, 'pages/login.html'),
+        registro: resolve(root, 'pages/registro.html'),
       },
     },
   },
