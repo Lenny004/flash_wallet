@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!--Nombre de la página-->
+    <title>Flash</title>
+    <meta charset="UTF-8">
+    <!--Importamos el css de "estilo" para modificar los contenidos de la página principal-->
+    <link type="text/css" rel="stylesheet" href="../css/styles.css" />
+    <!--Importamos el css para manejar la fuente del sitio web-->
+    <link type="text/css" rel="stylesheet" href="../css/fuente.css">
+    <!--Importar un icono para el sitio web-->
+    <link rel="icon" type="icon/png" href="../resources/imgs/Flash_logo.png">
+    <!--Informar al navegador que el sitio web está optimizado para dispositivos móviles-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body>
+    <header id="header">
+        
+    </header>
+    <main class="dashboard">
+        <div class="encabezado">
+            <h1 class="titulo">Recarga de Tarjeta Digital</h1>
+        </div>
+        <div class="logo">
+            <img src="../resources/imgs/Flash_logo.png" alt="Logo">
+        </div>
+        <div class="form-container">
+            <form id="recarga_form" action="post" class="form" autocomplete="off">
+                <input type="text" class="input" placeholder="Número de tarjeta de crédito o débito" id="numero_t" name="numero_t" maxlength="19" required>
+                <div class="two-columns">
+                    <input type="date" placeholder="Vencimiento" class="input" id="vencimiento" name="vencimiento" maxlength="50" required>
+                    <input type="number" placeholder="CVC" class="input" id="cvc" name="cvc" maxlength="4" required>
+                </div>
+                <input type="text" placeholder="Nombre del titular" class="input" id="nombre_titular" name="nombre_titular" maxlength="50" required>
+                <div class="two-columns">
+                    <label for="cantidad" class="label">Cantidad a recargar</label>
+                    <input type="number" placeholder="$$$" class="input" id="monto_agregado" name="monto_agregado" maxlength="4" required>
+                </div>
+                <input type="text" class="input" id="minima" name="minima" required disabled>
+                <div class="two-columns">
+                    <input type="button" value="Cancelar" class="btn primary-button cancel">
+                    <input type="submit" value="Actualizar" class="btn primary-button">
+                </div>
+                <p class="nota">
+                    <b>
+                        IMPORTANTE: Por su seguridad los datos de su tarjeta no serán guardados, por ello deberá ingresar los datos cada vez que recargue en Flash.
+                    </b>
+                </p>
+            </form>
+        </div>
+    </main>
+    <nav>
+        <div class="navbar">
+            <a href="dashboard.html" class="btn primary-button">
+                <img src="../resources/icons/home.png" alt="home">
+            </a>
+            <a href="pago.html" class="btn primary-button">
+                <img src="../resources/icons/billete.png" alt="Pagar">
+            </a>
+            <a href="escanear_servicio.html" class="btn primary-button">
+                <img src="../resources/icons/scanner.png" alt="Escanear">
+            </a>
+            <a href="recarga.html" class="btn primary-button">
+                <img src="../resources/icons/recharge.png" alt="Recargar">
+            </a>
+        </div>
+    </nav>
+    <script type="text/javascript" src="../resources/js/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="../controllers/componentes.js"></script>
+    <script type="text/javascript" src="../controllers/online.js"></script>
+    <script type="text/javascript" src="../controllers/recarga.js"></script>
+</body>
+</html>
