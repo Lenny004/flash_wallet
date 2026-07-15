@@ -26,6 +26,11 @@ def test_movimientos_sin_token_401(client):
     assert response.status_code == 401
 
 
+def test_servicios_sin_token_retorna_401(client):
+    response = client.get("/api/servicios/")
+    assert response.status_code == 401
+
+
 def test_crear_transaccion_sin_intent_falla(client):
     """POST /crear exige token antes que exp/sig; sin auth → 401."""
     response = client.post(

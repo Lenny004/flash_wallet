@@ -7,13 +7,32 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- Blacklist de refresh tokens en logout (`POST /api/usuarios/logout`): revocación server-side por `jti` en memoria; `POST /api/usuarios/refresh` rechaza tokens revocados.
+- Rate limiting en memoria (`app/core/rate_limit.py`): login (5 req/min por IP) y decode QR (20 req/min por `id_tarjeta`).
+- `GET /api/servicios/` autenticado con `token_usuario` (`response_model`); guard 401 sin token.
+- Tests ampliados: movimientos y crear transacción sin auth, logout/refresh revocado, rate limit unitario, QR intents (firma, TTL, campos requeridos).
+- Piloto de migración Vite: `login` como módulo ES (`frontend/src/pages/login.ts`).
+- Enums de estado y `ForeignKey` explícitas en el ORM.
+
+### Cambiado
+
+- `escanear.js`: la transacción se crea solo con el `intent` firmado devuelto por `POST /api/decode_qr/` (el cliente no reenvía montos editables sin `exp`/`sig`).
+- Scaffolding TypeScript (`frontend/src/lib/auth.ts`, `src/api/client.ts`) como fuente de verdad para `apiFetchAuth` y refresh.
+
+### Documentado
+
+- `docs/SEGURIDAD.md`: sección sobre rate limit, payment intents QR y blacklist de refresh.
+- Dashboard y escanear revisados: el dashboard no lista servicios (historial/tarjeta/movimientos); escanear obtiene el servicio del QR (sin `<select>` en `escanear_servicio.html`), por lo que no se añade preload de `/api/servicios/` en esas vistas.
+
 ### Planeado
 
 - Unificación de `controllers/*.js` en módulos ES.
 - Eliminación de carpetas legacy (`api/`, `views/`, `controllers/`, `css/`).
 - Despliegue en cloud (API + frontend estático).
-- Blacklist de refresh tokens en logout.
 - Guards de sesión unificados en todas las páginas.
+- Blacklist de refresh en Redis/DB (hoy solo en memoria del proceso).
 
 ## [0.2.0] - 2026-07-14
 

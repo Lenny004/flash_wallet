@@ -3,12 +3,14 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.factura import routerFactura
 from app.api.routes.historial import routerHistorial
 from app.api.routes.internal import routerInternal
 from app.api.routes.qr import routerQR
+from app.api.routes.servicios import routerServicios
 from app.api.routes.tarjeta import routerTarjeta
 from app.api.routes.transaccion import routerTransaccion
 from app.api.routes.usuarios import routerUsuario
@@ -58,7 +60,17 @@ app.add_middleware(
 
 @app.get("/health", response_model=HealthResponse)
 def health():
-    return {"status": "ok"}
+    db_status = "ok"
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception:
+        db_status = "error"
+    return {
+        "status": "ok" if db_status == "ok" else "degraded",
+        "database": db_status,
+    }
 
 
 app.include_router(routerUsuario, prefix="/api/usuarios", tags=["Usuarios"])
@@ -67,6 +79,7 @@ app.include_router(routerTarjeta, prefix="/api/tarjeta", tags=["Tarjeta"])
 app.include_router(routerQR, prefix="/api/decode_qr", tags=["QR"])
 app.include_router(routerTransaccion, prefix="/api/transaccion", tags=["Transaccion"])
 app.include_router(routerFactura, prefix="/api/factura", tags=["Factura"])
+app.include_router(routerServicios, prefix="/api/servicios", tags=["Servicios"])
 app.include_router(routerInternal, prefix="/api/internal", tags=["Internal"])
 
 if __name__ == "__main__":

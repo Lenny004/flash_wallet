@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Flash</title>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+    <link type="text/css" rel="stylesheet" href="/css/fuente.css">
+    <link rel="icon" type="icon/png" href="/resources/imgs/Flash_logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+
+<body>
+    <main class="dashboard">
+        <div class="encabezado">
+            <h1 class="titulo">Crear Cuenta</h1>
+        </div>
+        <div class="logo">
+            <img src="/resources/imgs/Flash_logo.png" alt="Logo">
+        </div>
+        <div class="form-container">
+            <form id="perfil_form" action="post" class="form" autocomplete="off">
+                <label for="nombres" class="label">Nombres</label>
+                <input type="text" class="input" id="nombres" name="nombres" placeholder="Nombre" maxlength="50"
+                    required>
+                <label for="apellidos" class="label">Apellidos</label>
+                <input type="text" class="input" id="apellidos" name="apellidos" placeholder="Apellidos" maxlength="50"
+                    required>
+                <label for="correo" class="label">Correo</label>
+                <input type="email" class="input" id="correo" name="email" placeholder="correo@gmail.com"
+                    maxlength="50" required>
+                <label for="usuario" class="label">Usuario</label>
+                <input type="text" class="input" id="usuario" name="usuario" placeholder="usuario" maxlength="50"
+                    required>
+                <label for="contra" class="label">Contraseña</label>
+                <input type="password" class="input" id="contra" name="contra" maxlength="50"
+                    required>
+                <label for="direccion" class="label">Dirección</label>
+                <input type="text" class="input" id="direccion" name="direccion" placeholder="Address" maxlength="150"
+                    required>
+                <label for="telefono" class="label">Teléfono</label>
+                <input type="text" class="input" id="telefono" name="telefono" placeholder="+503 00000000"
+                    maxlength="15" required>
+                <input type="submit" value="Crear Cuenta" class="btn primary-button">
+            </form>
+        </div>
+    </main>
+    <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
+    <script type="module" src="/src/pages/registro.ts"></script>
+</body>
+
+</html>

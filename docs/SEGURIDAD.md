@@ -65,11 +65,74 @@ validación en backend con Pydantic v2 y `response_model`, y formato de error un
 
 ### QR sin firma ni expiración
 
-El QR es un string separado por `@` que incluye `monto` e `id_estado`; el cliente puede
-manipular campos antes de crear la transacción.
+~~El QR es un string separado por `@` que incluye `monto` e `id_estado`; el cliente puede
+manipular campos antes de crear la transacción.~~ **Remediado en v0.2** — ver sección
+[Payment intents QR](#payment-intents-qr) más abajo.
 
-**Remediación:** firmar el contenido del QR (HMAC) o usar payment intents con TTL corto
-(estilo EasyPay), validando en el servidor que el intent existe y no expiró.
+## Controles implementados (v0.2+)
+
+### Rate limiting
+
+Limiter en memoria en [`backend/app/core/rate_limit.py`](../backend/app/core/rate_limit.py):
+ventana deslizante por clave; al superar el límite responde **429** con
+`"Demasiadas solicitudes. Intenta más tarde."`.
+
+| Endpoint | Clave | Límite | Ventana |
+|----------|-------|--------|---------|
+| `POST /api/usuarios/login` | `login:{client_ip}` | 5 | 60 s |
+| `POST /api/decode_qr/` | `qr:{id_tarjeta}` | 20 | 60 s |
+
+**Limitaciones actuales:**
+
+- El estado vive en el proceso de la API: se pierde al reiniciar y no se comparte entre
+  réplicas. En producción usar Redis o un proxy (nginx, Cloudflare) con rate limit global.
+- `decode_qr` exige JWT de tarjeta; el límite es por titular, no por IP anónima.
+
+Tests: [`backend/tests/test_rate_limit.py`](../backend/tests/test_rate_limit.py).
+
+### Payment intents QR
+
+Flujo firmado en [`backend/app/services/qr_intent.py`](../backend/app/services/qr_intent.py):
+
+1. Tras decodificar el QR, `POST /api/decode_qr/` devuelve un objeto `intent` con
+   `id_servicio`, `monto`, `frecuencia`, `descripcion`, `exp` (unix) y `sig` (HMAC-SHA256
+   sobre una cadena canónica, usando `SECRET_KEY`).
+2. El TTL por defecto es `QR_INTENT_TTL_SECONDS` (300 s en
+   [`backend/app/core/config.py`](../backend/app/core/config.py)).
+3. `POST /api/transaccion/crear` llama a `verificar_intent()` antes de persistir: rechaza
+   intents expirados, con firma incorrecta o con campos faltantes (**400**).
+4. El frontend (`controllers/escanear.js`) guarda el `intent` del decode y solo envía
+   `exp`/`sig` al crear; no acepta montos editados manualmente sin QR válido.
+
+**Qué mitiga:** manipulación de montos o servicio en el cliente entre escaneo y cobro.
+
+Tests: [`backend/tests/test_qr_intent.py`](../backend/tests/test_qr_intent.py),
+[`backend/tests/test_auth_endpoints.py`](../backend/tests/test_auth_endpoints.py) (401 sin token en decode/crear).
+
+### Blacklist de refresh tokens
+
+Implementación en [`backend/app/core/token_blacklist.py`](../backend/app/core/token_blacklist.py)
+e integrada en [`backend/app/core/security.py`](../backend/app/core/security.py):
+
+- Cada refresh token incluye un `jti` único (`new_jti()` al emitir en login).
+- `POST /api/usuarios/logout` con `{ "refresh_token": "..." }` extrae el `jti` y lo añade
+  a un `set` en memoria (`revoke`).
+- `verificar_refresh_token()` consulta `is_revoked()` antes de renovar access tokens; un
+  token revocado devuelve **401** (`"Token revocado."`).
+- El cliente (`controllers/auth.js`, `componentes.js`) llama a `revokeRefreshToken()` al
+  cerrar sesión y borra `localStorage`; la revocación efectiva depende del logout server-side.
+
+**Limitaciones actuales:**
+
+- La blacklist es **por proceso**: un reinicio de la API la vacía; en despliegue multi-réplica
+  un token revocado en un worker podría seguir válido en otro hasta migrar a Redis o tabla
+  `revoked_tokens`.
+- Logout no exige JWT de usuario (solo el refresh); un atacante con el refresh podría
+  revocar la sesión de la víctima (denegación de servicio menor). Valorar exigir auth en
+  logout en versiones posteriores.
+
+Tests: `test_logout_revoca_refresh_token` en
+[`backend/tests/test_auth_endpoints.py`](../backend/tests/test_auth_endpoints.py).
 
 ## Checklist de seguridad mínima (fintech-lite)
 
@@ -79,7 +142,8 @@ manipular campos antes de crear la transacción.
 - [ ] Todos los endpoints mutables autenticados y autorizados por propietario
 - [ ] CORS restringido a orígenes conocidos
 - [ ] Débito de saldo en transacción atómica con validación previa
-- [ ] QR firmado o con TTL
-- [ ] Rate limiting en login y decode QR (p. ej. `slowapi`)
+- [x] QR firmado o con TTL (payment intents HMAC + `verificar_intent` en crear)
+- [x] Rate limiting en login y decode QR (limiter en memoria; valorar Redis/`slowapi` en prod)
+- [x] Blacklist de refresh en logout (memoria por `jti`; migrar a Redis/DB en prod)
 - [ ] Sanitización de datos en el DOM
 - [ ] HTTPS en despliegue

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DECIMAL, Date, Time
+from sqlalchemy import Column, ForeignKey, Integer, DECIMAL, Date, Time
 
 from app.db.base import Base
 
@@ -10,4 +10,4 @@ class Factura(Base):
     monto_total = Column(DECIMAL(6, 2), nullable=False)
     fecha_factura = Column(Date, nullable=False)
     hora_factura = Column(Time, nullable=False)
-    id_transaccion = Column(Integer, nullable=False)
+    id_transaccion = Column(Integer, ForeignKey("tbtransaccion.id_transaccion"), nullable=False)

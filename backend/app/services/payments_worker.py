@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.enums import EstadoTransaccion
 from app.models.factura import Factura
 from app.models.transaccion import Transaccion
 from app.services.wallet import debitar_saldo
@@ -21,16 +22,16 @@ def procesar_pagos_tarjeta(db: Session, id_tarjeta: int) -> None:
         )
 
         if transaccion.frecuencia == 0:
-            transaccion.id_estado = 3
+            transaccion.id_estado = EstadoTransaccion.COMPLETADA
         if datetime.now() > transaccion_datetime:
             try:
                 debitar_saldo(db, transaccion.id_tarjeta, transaccion.monto, referencia=str(transaccion.id_transaccion))
                 transaccion.frecuencia -= 1
 
                 if transaccion.frecuencia <= 0:
-                    transaccion.id_estado = 3
+                    transaccion.id_estado = EstadoTransaccion.COMPLETADA
                 else:
-                    transaccion.id_estado = 2
+                    transaccion.id_estado = EstadoTransaccion.EN_ESPERA
 
                 factura = Factura(
                     fecha_factura=datetime.now().date(),
@@ -48,7 +49,7 @@ def procesar_pagos_tarjeta(db: Session, id_tarjeta: int) -> None:
 
             except HTTPException as e:
                 if e.status_code == 400 and e.detail == "Saldo insuficiente":
-                    transaccion.id_estado = 1
+                    transaccion.id_estado = EstadoTransaccion.FALLIDO
                 elif e.status_code == 404:
                     continue
                 else:
@@ -57,8 +58,8 @@ def procesar_pagos_tarjeta(db: Session, id_tarjeta: int) -> None:
         else:
             continue
 
-        if transaccion.frecuencia <= 0 and transaccion.id_estado != 3:
-            transaccion.id_estado = 3
+        if transaccion.frecuencia <= 0 and transaccion.id_estado != EstadoTransaccion.COMPLETADA:
+            transaccion.id_estado = EstadoTransaccion.COMPLETADA
 
     db.commit()
 

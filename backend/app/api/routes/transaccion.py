@@ -4,6 +4,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_t
+from app.core.enums import EstadoTransaccion
 from app.models.estado import Estado
 from app.models.servicio import Servicio
 from app.models.transaccion import Transaccion
@@ -38,7 +39,12 @@ def obtener_facturas(datos_tarjeta=Depends(verificar_token_t), db: Session = Dep
         )
         .join(Estado, Transaccion.id_estado == Estado.id_estado)
         .join(Servicio, Transaccion.id_servicio == Servicio.id_servicio)
-        .filter(and_(Transaccion.id_tarjeta == idtarjeta, Transaccion.id_estado != 3))
+        .filter(
+            and_(
+                Transaccion.id_tarjeta == idtarjeta,
+                Transaccion.id_estado != EstadoTransaccion.COMPLETADA,
+            )
+        )
     )
 
     try:
@@ -141,7 +147,7 @@ def saldo_pendiente(datos_tarjeta=Depends(verificar_token_t), db: Session = Depe
 
     transacciones_pendientes = db.query(Transaccion).filter(
         Transaccion.id_tarjeta == datos_tarjeta.get("id_tarjeta"),
-        Transaccion.id_estado == 1,
+        Transaccion.id_estado == EstadoTransaccion.FALLIDO,
     ).all()
 
     monto_pendiente = sum([transaccion.monto for transaccion in transacciones_pendientes])
