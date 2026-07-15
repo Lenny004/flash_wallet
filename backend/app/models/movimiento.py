@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String, DECIMAL
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, DECIMAL
 
 from app.db.base import Base
 
@@ -7,7 +7,7 @@ class Movimiento(Base):
     __tablename__ = "tbmovimiento"
 
     id_movimiento = Column(Integer, primary_key=True, autoincrement=True, index=True)
-    id_tarjeta = Column(Integer, nullable=False)
+    id_tarjeta = Column(Integer, ForeignKey("tbtarjeta_digital.id_tarjeta"), nullable=False)
     tipo = Column(String(20), nullable=False)
     monto = Column(DECIMAL(10, 2), nullable=False)
     saldo_anterior = Column(DECIMAL(10, 2), nullable=False)

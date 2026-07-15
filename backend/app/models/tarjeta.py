@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DECIMAL
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, DECIMAL
 
 from app.db.base import Base
 
@@ -12,4 +12,4 @@ class Tarjeta(Base):
     balance = Column(DECIMAL(7, 2), nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     fecha_actualizacion = Column(Date, nullable=False)
-    id_usuario = Column(Integer, unique=True, nullable=False)
+    id_usuario = Column(Integer, ForeignKey("tbusuario.id_usuario"), unique=True, nullable=False)
