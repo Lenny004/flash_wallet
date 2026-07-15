@@ -10,9 +10,9 @@ from app.api.deps import get_db, verificar_token_t
 from app.models.estado import Estado
 from app.models.factura import Factura
 from app.models.servicio import Servicio
-from app.models.tarjeta import Tarjeta
 from app.models.transaccion import Transaccion
 from app.schemas.transaccion_schema import TransaccionCreate
+from app.services.wallet import debitar_saldo
 
 routerTransaccion = APIRouter()
 
@@ -127,15 +127,13 @@ def procesar_pagos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depen
     ).all()
 
     for transaccion in transacciones:
-        tarjeta = db.query(Tarjeta).filter(Tarjeta.id_tarjeta == transaccion.id_tarjeta).first()
-
         transaccion_datetime = datetime.combine(transaccion.fecha_transaccion, transaccion.hora_transaccion)
 
         if transaccion.frecuencia == 0:
             transaccion.id_estado = 3
-        if tarjeta and datetime.now() > transaccion_datetime:
-            if tarjeta.balance >= transaccion.monto:
-                tarjeta.balance -= transaccion.monto
+        if datetime.now() > transaccion_datetime:
+            try:
+                debitar_saldo(db, transaccion.id_tarjeta, transaccion.monto)
                 transaccion.frecuencia -= 1
 
                 if transaccion.frecuencia <= 0:
@@ -155,8 +153,13 @@ def procesar_pagos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depen
 
                 transaccion.fecha_transaccion = transaccion.fecha_transaccion + relativedelta(months=1)
 
-            else:
-                transaccion.id_estado = 1
+            except HTTPException as e:
+                if e.status_code == 400 and e.detail == "Saldo insuficiente":
+                    transaccion.id_estado = 1
+                elif e.status_code == 404:
+                    continue
+                else:
+                    raise
 
         else:
             continue
