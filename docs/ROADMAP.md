@@ -51,7 +51,7 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 - [x] `docker-compose.yml`: `db` + `api` + `frontend` (nginx).
 - [x] `Dockerfile` para backend y frontend.
-- [~] `.github/workflows/ci.yml`: lint + pytest + build frontend (falta build Docker en CI).
+- [~] `.github/workflows/ci.yml`: lint + pytest + build frontend + build Docker opcional (api + frontend).
 - [x] Endpoint `/health` + healthcheck del servicio `api`.
 
 **Done:** `docker compose up` levanta todo; CI verde en cada PR.
