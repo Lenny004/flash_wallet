@@ -86,6 +86,22 @@ Semilla: `1 = Pendiente`, `2 = En espera`, `3 = Completada`.
 | monto_total | DECIMAL(6,2) | NOT NULL |
 | id_transaccion | INT | NOT NULL, FK -> tbtransaccion |
 
+### tbmovimiento (ledger de saldo)
+| Columna | Tipo | Restricciones |
+|---------|------|---------------|
+| id_movimiento | INT | PK, AUTO_INCREMENT |
+| id_tarjeta | INT | NOT NULL, FK -> tbtarjeta_digital |
+| tipo | VARCHAR(20) | NOT NULL |
+| monto | DECIMAL(10,2) | NOT NULL |
+| saldo_anterior | DECIMAL(10,2) | NOT NULL |
+| saldo_nuevo | DECIMAL(10,2) | NOT NULL |
+| referencia | VARCHAR(80) | NULL |
+| creado_en | DATETIME | NOT NULL |
+
+Registra cada cambio de balance (recarga, débito, etc.) de forma inmutable.
+
+> **Nota:** En bases ya creadas con `dbflash.sql` anterior, la tabla puede no existir. Tras `docker compose up db`, ejecuta `alembic upgrade head` desde `backend/` para crearla.
+
 ## Problemas a corregir
 
 ### 1. Bug de sintaxis en `dbflash.sql` (bloqueante)
@@ -138,5 +154,5 @@ Objetivo: dejar de mantener `dbflash.sql` a mano y versionar el esquema.
 
 - Envolver recarga y débito de saldo en transacciones atómicas (`db.begin()`), validando
   saldo suficiente antes de debitar.
-- Añadir un patrón de ledger (movimientos inmutables) para auditar cada cambio de balance,
-  en lugar de solo mutar `balance` en la tarjeta.
+- El ledger `tbmovimiento` audita cada cambio de balance; mantener consistencia con
+  transacciones atómicas al escribir movimiento y actualizar `balance`.

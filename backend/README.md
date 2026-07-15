@@ -25,3 +25,20 @@ alembic upgrade head
 ```
 
 `sqlalchemy.url` en `alembic.ini` es un placeholder; `alembic/env.py` lo sobrescribe con `settings.database_url` de `app.core.config`.
+
+### Bases de datos existentes
+
+Si ya tienes `dbflash` cargada (XAMPP o volumen Docker) y falta la tabla `tbmovimiento`, levanta MySQL y aplica la migración:
+
+```bash
+docker compose up db
+cd backend && alembic upgrade head
+```
+
+## Variables de entorno
+
+Verifica que `SECRET_KEY` y `DATABASE_URL` estén definidos en `Flash/.env`:
+
+```bash
+python scripts/check_env.py
+```
