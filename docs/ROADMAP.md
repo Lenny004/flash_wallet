@@ -32,18 +32,19 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 - [x] Unificar `declarative_base` y declarar Base única.
 - [x] Introducir Alembic (esqueleto listo; falta migración inicial generada).
 - [ ] Estandarizar respuestas y errores; usar `response_model`.
-- [ ] Tests con pytest: login, crear transacción, decode QR (válido/ inválido).
-- [ ] `ruff` configurado.
+- [x] Tests con pytest de humo y guards de auth (401 sin token); faltan tests de login/QR con DB.
+- [x] `ruff` configurado (`ruff.toml`; lint en CI; sin `--fix` masivo aún).
 - [x] Docker Compose solo para MySQL (siguiente paso incremental).
 
 **Done:** backend testeable, con migraciones versionadas y configuración por entorno.
 
 ## Fase 2 - Frontend desacoplado (2-3 semanas)
 
-- [ ] Crear `frontend/` con Vite; copiar HTML/CSS tal cual al inicio.
+- [x] Crear scaffold `frontend/` con Vite + TypeScript (`apiFetch`, proxy `/api`).
+- [ ] Copiar HTML/CSS de `views/` al frontend Vite.
 - [ ] Unificar `controllers/*.js` en módulos ES.
-- [ ] `src/api/client.ts` con `baseURL` desde `VITE_API_URL`.
-- [ ] Proxy `/api` en `vite.config` hacia `localhost:8000`.
+- [x] `src/api/client.ts` con `baseURL` desde `VITE_API_URL`.
+- [x] Proxy `/api` en `vite.config` hacia `localhost:8000`.
 - [ ] Guards de sesión por página.
 
 **Done:** misma UI, sin URLs hardcodeadas, con build reproducible.
@@ -52,19 +53,19 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 - [ ] `docker-compose.yml`: `db` + `api` + `frontend`.
 - [ ] `Dockerfile` multi-stage para backend y frontend.
-- [ ] `.github/workflows/ci.yml`: lint + tests + build.
-- [ ] Endpoint `/health` y healthchecks.
+- [~] `.github/workflows/ci.yml`: lint (ruff) + tests (pytest) + build frontend (falta build Docker API).
+- [x] Endpoint `/health` (falta healthcheck en Compose del servicio api).
 
 **Done:** `docker compose up` levanta todo; CI verde en cada PR.
 
 ## Fase 4 - Patrones fintech (2-4 semanas, incremental)
 
-- [ ] Autenticar todos los endpoints mutables; autorización por propietario.
+- [x] Autenticar endpoints mutables críticos (deletes, procesar_pagos, QR); falta auditoría completa.
 - [ ] Transacciones atómicas para recarga/débito con validación de saldo.
 - [ ] Ledger de movimientos (audit trail).
 - [ ] QR con expiración / payment intent firmado.
-- [ ] Refresh tokens; quitar datos sensibles del JWT.
-- [ ] Convertir `procesar_pagos` en worker/cron en vez de endpoint público.
+- [x] Quitar pan/cvc del JWT de tarjeta (faltan refresh tokens).
+- [ ] Convertir `procesar_pagos` en worker/cron en vez de polling desde el navegador.
 - [ ] Reemplazar el BST en memoria por consultas SQL.
 
 **Done:** operaciones financieras seguras, auditables y sin endpoints abiertos.
