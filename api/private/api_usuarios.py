@@ -19,12 +19,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 @routerUsuario.get("/")
 def obtener_usuarios(db: Session = Depends(get_db)):
     """
-    Obtiene todos los usuarios registrados en la base de datos(PRIMER USO).
+    Indica si existen usuarios registrados (primer uso), sin exponer datos sensibles.
     """
-    usuarios = db.query(Usuario).all()
-    if not usuarios:
-        return {"estado": 0, "exception": "No hay usuarios registrados."}  # Cambié el estado a 0 para indicar que hubo un error
-    return {"estado": 1, "usuarios": usuarios}
+    hay_usuarios = db.query(Usuario.id_usuario).first() is not None
+    if not hay_usuarios:
+        return {"estado": 0, "hay_usuarios": False, "exception": "No hay usuarios registrados."}
+    return {"estado": 1, "hay_usuarios": True}
 
 
 @routerUsuario.post("/")

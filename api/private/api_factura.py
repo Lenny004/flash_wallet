@@ -121,17 +121,29 @@ def buscar_factura(body: BuscarFactura, datos_tarjeta=Depends(verificar_token_t)
         raise HTTPException(status_code=500, detail=f"Error al obtener las facturas: {str(e)}")
     
 @routerFactura.post("/delete")
-def eliminar_factura(body: EliminarFactura, db: Session = Depends(get_db)):
+def eliminar_factura(body: EliminarFactura, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
     Elimina una factura específica por su ID.
     """
+    if not datos_tarjeta:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado.")
+
+    id_tarjeta = datos_tarjeta.get("id_tarjeta")
+    if not id_tarjeta:
+        raise HTTPException(status_code=400, detail="No se encontró el ID de la tarjeta.")
+
     idfactura = body.id_factura
     if not idfactura:
         raise HTTPException(status_code=400, detail="ID de factura no proporcionado.")
     
     try:
-        # Buscar la factura en la base de datos
-        factura = db.query(Factura).filter(Factura.id_factura == idfactura).first()
+        # Buscar la factura validando que pertenezca a una transacción de la tarjeta del token
+        factura = db.query(Factura).join(
+            Transaccion, Factura.id_transaccion == Transaccion.id_transaccion
+        ).filter(
+            Factura.id_factura == idfactura,
+            Transaccion.id_tarjeta == id_tarjeta
+        ).first()
         
         if not factura:
             raise HTTPException(status_code=404, detail="Factura no encontrada.")

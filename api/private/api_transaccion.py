@@ -122,8 +122,18 @@ def crear_transaccion(body: TransaccionCreate, datos_tarjeta=Depends(verificar_t
     
 
 @routerTransaccion.post("/procesar_pagos")
-def procesar_pagos(db: Session = Depends(get_db)):
-    transacciones = db.query(Transaccion).filter(Transaccion.frecuencia >= 0).all()  # Incluir todas las transacciones con frecuencia >= 0
+def procesar_pagos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+    if not datos_tarjeta:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado.")
+
+    id_tarjeta = datos_tarjeta.get('id_tarjeta')
+    if not id_tarjeta:
+        raise HTTPException(status_code=400, detail="No se encontró el ID de la tarjeta.")
+
+    transacciones = db.query(Transaccion).filter(
+        Transaccion.id_tarjeta == id_tarjeta,
+        Transaccion.frecuencia >= 0
+    ).all()
 
     for transaccion in transacciones:
         tarjeta = db.query(Tarjeta).filter(Tarjeta.id_tarjeta == transaccion.id_tarjeta).first()

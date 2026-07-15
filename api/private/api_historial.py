@@ -105,17 +105,24 @@ def recargar(body: BuscarHistorialRequest, datos_tarjeta=Depends(verificar_token
 
 
 @routerHistorial.post("/delete")
-def eliminar_historial(body: EliminarHistorial, db: Session = Depends(get_db)):
+def eliminar_historial(body: EliminarHistorial, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
     Elimina un historial específico por su ID.
     """
+    if not datos_tarjeta:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado.")
+
+    id_tarjeta = datos_tarjeta.get('id_tarjeta')
     idhistorial = body.id_historial
     if not idhistorial:
         raise HTTPException(status_code=400, detail="ID del historial no proporcionado.")
     
     try:
-        # Buscar el historial en la base de datos
-        historial = db.query(Historial).filter(Historial.id_historial == idhistorial).first()
+        # Buscar el historial en la base de datos y validar que pertenezca a la tarjeta del token
+        historial = db.query(Historial).filter(
+            Historial.id_historial == idhistorial,
+            Historial.id_tarjeta == id_tarjeta
+        ).first()
         
         if not historial:
             raise HTTPException(status_code=404, detail="Historial de deposito no encontrado.")

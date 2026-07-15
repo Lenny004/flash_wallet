@@ -21,6 +21,11 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 # Registrar los routers
 app.include_router(routerUsuario, prefix="/api/usuarios", tags=["Usuarios"])
 app.include_router(routerHistorial, prefix="/api/historial", tags=["Historial"])

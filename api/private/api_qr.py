@@ -2,13 +2,16 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session
 from helpers.database import get_db
+from helpers.tokens import verificar_token_t
 from models.decode_qr import decode_qr_image  # Importar la función de decodificación
 from models.servicio import Servicio
 
 routerQR = APIRouter()
 
 @routerQR.post("/")
-async def decode_qr(qr_image: UploadFile = File(...), db: Session = Depends(get_db)):
+async def decode_qr(qr_image: UploadFile = File(...), datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+    if not datos_tarjeta:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado.")
     try:
         # Leer la imagen
         image_data = await qr_image.read()
