@@ -1,0 +1,111 @@
+# Publicación en GitHub
+
+## Metadatos del repositorio
+
+- **URL:** https://github.com/Lenny004/flash_wallet
+- **Nombre:** `flash_wallet`
+- **Descripción:** `Billetera digital con tarjeta virtual, pagos QR de servicios, recargas y facturacion - FastAPI + MySQL`
+- **Topics:** `fastapi`, `digital-wallet`, `qr-payments`, `fintech`, `sqlalchemy`, `mysql`, `docker`, `python`
+- **Rama por defecto:** `main` (protegida; no hacer push directo)
+- **Rama de trabajo:** `develop` (push inicial y desarrollo diario)
+- **Licencia:** MIT
+
+## Flujo de ramas
+
+- Todo el trabajo va en `develop` o en ramas derivadas (`feature/*`, `fix/*`, `chore/*`).
+- **No subir directamente a `main`.** Los cambios llegan a `main` solo vía PR cuando corresponda.
+- El push inicial ya se hace a `origin/develop`.
+
+## Antes del primer push (obligatorio)
+
+1. **Rotar `SECRET_KEY`** y moverla a `.env` (ver [SEGURIDAD.md](SEGURIDAD.md)). Hecho: clave nueva en `.env` local.
+2. Mover `DATABASE_URL` a `.env`. Hecho.
+3. Confirmar que `.gitignore` excluye `.env`, `__pycache__/`, `venv/`, `node_modules/`.
+4. Corregir el bug de sintaxis en [dbflash.sql](../dbflash.sql) (coma tras `cvc`). Hecho.
+5. Verificar que ningún archivo con secretos entra en el commit inicial.
+
+## Archivos de repositorio
+
+| Archivo | Estado |
+|---------|--------|
+| `README.md` (raíz) | Creado |
+| `.gitignore` | Creado |
+| `.env.example` | Creado |
+| `LICENSE` (MIT) | Creado |
+| `requirements.txt` | Creado |
+| `CONTRIBUTING.md` | A crear (Fase 1) |
+| `docs/` | Creado |
+| `.github/workflows/ci.yml` | A crear (Fase 3) |
+
+## Comandos git / gh (referencia)
+
+> Requiere `git` y `gh` (GitHub CLI) autenticado.
+
+```bash
+# Clonar (si partes de cero)
+git clone https://github.com/Lenny004/flash_wallet.git
+cd flash_wallet
+git checkout develop
+
+# Inicializar git local (solo si el proyecto aún no tiene repo)
+git init
+git checkout -b develop
+
+# Verificar que no hay secretos rastreados
+git status
+git add .
+git status   # revisar que .env NO aparece
+
+# Primer commit
+git commit -m "chore: initial commit - Flash wallet + docs"
+
+# Remoto y push inicial a develop (NO a main)
+git remote add origin https://github.com/Lenny004/flash_wallet.git
+git push -u origin develop
+
+# Añadir topics al repo remoto
+gh repo edit Lenny004/flash_wallet --add-topic fastapi,digital-wallet,qr-payments,fintech,sqlalchemy,mysql,docker,python
+```
+
+Para hacerlo público más adelante:
+
+```bash
+gh repo edit Lenny004/flash_wallet --visibility public
+```
+
+## Protección de rama
+
+Una vez con CI activo:
+
+```bash
+gh api repos/Lenny004/flash_wallet/branches/main/protection \
+  -X PUT -F required_status_checks.strict=true
+```
+
+O configurarlo desde Settings > Branches: requerir PR y checks de CI en verde antes de merge a `main`.
+
+## CI mínimo (GitHub Actions)
+
+`.github/workflows/ci.yml` (Fase 3): en cada push/PR instala dependencias, corre `ruff` y
+`pytest` en el backend y `npm run build` en el frontend. Ejemplo resumido:
+
+```yaml
+name: CI
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r backend/requirements.txt
+      - run: ruff check backend
+      - run: pytest backend
+```
+
+## Convención de commits y ramas
+
+- Ramas: `develop` (integración), `feature/<nombre>`, `fix/<nombre>`, `chore/<nombre>`.
+- Commits: estilo convencional (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
+- Versionado semántico con tags (`v0.1.0`, `v0.2.0`, ...).
