@@ -34,3 +34,16 @@ def test_usuarios_sin_datos_sensibles(client):
         assert "hay_usuarios" in data
         assert "usuarios" not in data
         assert "contra" not in str(data)
+
+
+def test_refresh_sin_body_retorna_422(client):
+    response = client.post("/api/usuarios/refresh")
+    assert response.status_code == 422
+
+
+def test_refresh_token_invalido_retorna_401(client):
+    response = client.post(
+        "/api/usuarios/refresh",
+        json={"refresh_token": "token-invalido"},
+    )
+    assert response.status_code == 401
