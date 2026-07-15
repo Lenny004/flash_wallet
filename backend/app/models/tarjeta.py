@@ -12,4 +12,4 @@ class Tarjeta(Base):
     balance = Column(DECIMAL(7, 2), nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     fecha_actualizacion = Column(Date, nullable=False)
-    id_usuario = Column(String(50), unique=True, nullable=False)
+    id_usuario = Column(Integer, unique=True, nullable=False)
