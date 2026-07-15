@@ -1,6 +1,5 @@
 // Constante para establecer la ruta y parámetros de comunicación con la API en Flask.
 const API_LOGIN = window.FLASH_API_BASE + '/api/usuarios/';
-const URL_PROCESAR_PAGOS = window.FLASH_API_BASE + '/api/transaccion/procesar_pagos';
 
 // Evento que se ejecuta cuando se carga la página web
 document.addEventListener('DOMContentLoaded', function () {
@@ -56,38 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 function cerrarSesion() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('token_usuario');
+    localStorage.removeItem('token_tarjeta');
+    localStorage.removeItem('refresh_token');
     sweetAlert(1, "Sesión cerrada exitosamente.", "login.html");
 }
 
-// Función para llamar al endpoint de procesamiento de pagos
-function procesarPagos() {
-    const token_tarjeta = localStorage.getItem('token_tarjeta');
-    if (!token_tarjeta) {
-        return;
-    }
-    fetch(URL_PROCESAR_PAGOS, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token_tarjeta}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.detail || "Error al procesar pagos.");
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log("Pagos procesados exitosamente:", data);
-    })
-    .catch(error => {
-        console.error("Error al procesar pagos:", error.message);
-    });
-}
-
-// Llamar a la función procesarPagos cada 5 segundos
-setInterval(procesarPagos, 5000);
+// Los pagos recurrentes se procesan en el servidor (worker en backend).
+// Ya no es necesario polling desde el navegador.

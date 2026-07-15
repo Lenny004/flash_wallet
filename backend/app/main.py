@@ -1,24 +1,57 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.factura import routerFactura
 from app.api.routes.historial import routerHistorial
+from app.api.routes.internal import routerInternal
 from app.api.routes.qr import routerQR
 from app.api.routes.tarjeta import routerTarjeta
 from app.api.routes.transaccion import routerTransaccion
 from app.api.routes.usuarios import routerUsuario
 from app.core.config import settings
+from app.db.session import SessionLocal
+from app.services.payments_worker import procesar_pagos_todas_tarjetas
 
-# Crear una aplicación FastAPI
-app = FastAPI()
+logger = logging.getLogger(__name__)
 
-# Configurar CORS desde variables de entorno
+
+async def _payments_poll_loop() -> None:
+    while True:
+        db = SessionLocal()
+        try:
+            tarjetas = procesar_pagos_todas_tarjetas(db)
+            if tarjetas:
+                logger.info("Pagos procesados para %d tarjeta(s)", tarjetas)
+        except Exception:
+            logger.exception("Error en el worker de pagos")
+        finally:
+            db.close()
+        await asyncio.sleep(settings.payments_poll_seconds)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(_payments_poll_loop())
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Internal-Token"],
 )
 
 
@@ -27,15 +60,14 @@ def health():
     return {"status": "ok"}
 
 
-# Registrar los routers
 app.include_router(routerUsuario, prefix="/api/usuarios", tags=["Usuarios"])
 app.include_router(routerHistorial, prefix="/api/historial", tags=["Historial"])
 app.include_router(routerTarjeta, prefix="/api/tarjeta", tags=["Tarjeta"])
 app.include_router(routerQR, prefix="/api/decode_qr", tags=["QR"])
 app.include_router(routerTransaccion, prefix="/api/transaccion", tags=["Transaccion"])
 app.include_router(routerFactura, prefix="/api/factura", tags=["Factura"])
+app.include_router(routerInternal, prefix="/api/internal", tags=["Internal"])
 
-# Iniciar el servidor de desarrollo
 if __name__ == "__main__":
     import uvicorn
 
