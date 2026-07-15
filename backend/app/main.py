@@ -3,6 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.factura import routerFactura
@@ -59,7 +60,17 @@ app.add_middleware(
 
 @app.get("/health", response_model=HealthResponse)
 def health():
-    return {"status": "ok"}
+    db_status = "ok"
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception:
+        db_status = "error"
+    return {
+        "status": "ok" if db_status == "ok" else "degraded",
+        "database": db_status,
+    }
 
 
 app.include_router(routerUsuario, prefix="/api/usuarios", tags=["Usuarios"])
