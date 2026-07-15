@@ -1,0 +1,514 @@
+:root {
+    --white: #F7F7F7;
+    --text-input-field: #dfdcdc;
+    --text-input-field2: #b3b3b3;
+    --red: #9E2D2D;
+    --red-light: #e7caca;
+    --yellow: #ffc60a;
+    --yellow_light:#ffe284;
+    --black:#1a1a1a;
+    --xsm: 1rem;
+    --ssm: 1.4rem;
+    --sm: 1.6rem;
+    --md: 1.8rem;
+    --lg: 3rem;
+    --shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    --borde: 1px solid rgba(0, 0, 0, .15);
+}
+
+body,
+html {
+    margin: 0;
+    font-size: 62.5%;
+    min-height: 100vh;
+    background-color: var(--white);
+    display: flex;
+    flex-direction: column; /* Organiza los elementos verticalmente */
+    /* 10px base for easier rem calculations */
+}
+
+main{
+    flex: 1;
+}
+
+/* Generalidades -----------------------------------------------------------------------*/
+p{
+    font-size: var(--ssm);
+}
+
+h2{
+    font-size: var(--md);
+}
+
+.visually-hidden{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.btn {
+    border-radius: 0.8rem;
+    border: none;
+    cursor: pointer;
+    font-size: var(--md);
+    font-family: inherit;
+    height: 5rem;
+    margin-top: 1.4rem;
+    margin-bottom: 3rem;
+    transition: background-color 0.3s, color 0.3s, border 0.3s;
+}
+
+.primary-button{
+    background-color: var(--red);
+    color: var(--white);
+    border: 0.1rem solid var(--red);
+}
+
+.primary-button:hover {
+    background-color: var(--white);
+    border: 0.1rem solid var(--red);
+    color: var(--red);
+}
+
+.custom-swal-popup {
+    border: 2px solid var(--red); /* Borde del popup */
+}
+
+.label {
+    font-size: var(--sm);
+    font-weight: bold;
+    margin-bottom: 0.4rem;
+}
+
+.input {
+    background-color: var(--text-input-field);
+    border: none;
+    border-radius: 0.8rem;
+    font-size: var(--sm);
+    font-family: inherit;
+    padding: 0.6rem;
+    height: 3rem;
+    margin-bottom: 1.2rem;
+    margin-top: 1.2rem;
+    width: -webkit-fill-available;
+}
+
+.form-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    max-width: 60rem;
+}
+
+.form .btn{
+    align-self: center;
+}
+
+header{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    padding-top: 2rem;
+    margin-bottom: 2rem;
+    justify-content: space-around;
+    justify-items: center;
+    align-items: center;
+}
+
+/*Dashboard -----------------------------------------------------------------------*/
+header .pill{
+    width: 70%;
+    padding: 0.4rem;
+    background: var(--black);
+    color: var(--white);
+    border-radius: 1.8rem;
+}
+
+header .perfil a{
+    display: inline-block;
+    width: 4.5rem;
+    height: 4.5rem;
+}
+
+header .perfil img {
+    width: inherit;
+    height: inherit;
+    border-radius: 50%;
+}
+
+.dashboard {
+    flex: 1; /* Permite que el contenedor crezca para llenar el espacio */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Mantiene el contenido al inicio */
+    align-items: center;
+}
+
+.dashboard .encabezado .titulo {
+    text-align: center;
+    margin-bottom: 16.75px;
+    font-size: var(--lg);
+}
+
+.dashboard .logo {
+    display: inherit;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    margin: 4rem 0rem;
+}
+
+.dashboard .logo img {
+    width: 12.4rem;
+    height: 12.4rem;
+    border-radius: 1.5rem 0 0 1.5rem;
+    object-fit: cover;
+}
+
+nav{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+}
+
+nav .navbar {
+    width: 100%;
+    display: inherit;
+    justify-content: space-around;
+    border-top: var(--text-input-field) 0.2rem solid;
+}
+
+nav .navbar a {
+    display: flex;
+    border-radius: 0.8rem;
+    width: 5rem;
+    height: 5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+nav .navbar a img{
+    width: 4rem;
+    height: 4rem;
+}
+
+.borde{
+    border: var(--text-input-field) 2px solid;
+    border-radius: 0.7rem;
+}
+
+/*Login-----------------------------------------------------------------------*/
+.login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: var(--sm);
+    padding: 0.5rem;
+    min-height: 40rem;
+}
+
+.login-form p {
+    margin-bottom: 2.5rem;
+    margin-top: 0rem;
+}
+
+.login-form .btn{
+    width: 100%;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    width: 90%;
+    position: relative;
+}
+
+.input-group label img {
+    width: 3rem;
+    height: 3rem;
+    margin-right: 10px;
+}
+
+.input-group .toggle-password {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    right: -1rem;
+}
+
+/* crear cuenta -----------------------------------------------------------------------*/
+.subrayar {
+    color: var(--red);
+    text-decoration: underline;
+    font-size: var(--sm);
+}
+
+
+/* Dashboard -----------------------------------------------------------------------*/
+.tarjeta_digital {
+    background-image: url(/resources/imgs/Tarjeta.png); /* Imagen de fondo */
+    background-size: cover; /* La imagen cubre todo el contenedor */
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    min-width: 30rem;
+    min-height: 18rem;
+    max-width: 60rem; /* Ancho de la tarjeta */
+    max-height: 36rem; /* Alto de la tarjeta */
+    margin: 1rem auto; /* Margen alrededor del contenedor y centrado */
+    border-radius: 10px; /* Bordes redondeados para un diseño más limpio */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para un efecto visual atractivo */
+    overflow: hidden; /* Recorta cualquier contenido que exceda */
+    position: relative;
+    color: var(--white);
+}
+
+.tarjeta_digital p:nth-child(1){
+    position: relative;
+    top: 9rem;
+    left: 3rem;
+}
+
+.tarjeta_digital p:nth-child(2){
+    position: relative;
+    top: 8.5rem;
+    left: 3rem;
+}
+
+.tarjeta_digital p:nth-child(3) {
+    position: relative;
+    top: 3rem;
+    left: 23rem;
+}
+
+.tarjeta_digital p:nth-child(4) {
+    position: relative;
+    top: 5rem;
+    left: 3rem;
+}
+
+.caja{
+    display: flex;
+    justify-content: space-between; /* Los elementos se separan y se pegan a los extremos */
+    align-items: center; /* Alineación vertical centrada */
+    gap: 1rem; /* Espacio entre los elementos */
+    min-width: 30rem;
+}
+
+.caja p{
+    padding: 0.8rem;
+}
+
+/*Recargar*/
+.two-columns {
+    display: flex;
+    justify-content: space-between; /* Los elementos se separan y se pegan a los extremos */
+    align-items: center; /* Alineación vertical centrada */
+    gap: 1rem; /* Espacio entre los elementos */
+}
+
+#recarga_form{
+    padding: 2rem;
+}
+
+#recarga_form .two-columns input {
+    width: 95%;
+}
+
+.nota{
+    text-align: center;
+}
+
+/*Pago-----------------------------------------------------------------------*/
+#tarjetas_pago {
+    --card-size: 30rem;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, var(--card-size));
+    gap: 26px;
+    place-content: center;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+#tarjetas_pago .tarjeta_servicio {
+    width: var(--card-size);
+    box-shadow: var(--shadow);
+    border-radius: 0.8rem;
+    position: relative;
+}
+
+#tarjetas_pago .tarjeta_servicio .datos_servicio p,h2{
+    margin: 0.4rem;
+    margin-left: 3rem;
+}
+
+#tarjetas_pago .tarjeta_servicio .datos_servicio p{
+    color: var(--text-input-field2);
+}
+
+#tarjetas_pago .tarjeta_servicio .datos_servicio hr{
+    border: none; /* Quita el borde predeterminado del hr */
+    width: 0.8rem; /* Grosor de la línea vertical */
+    height: 52%; /* Altura de la línea vertical */
+    border-radius: 5px; /* Bordes redondeados */
+    position: absolute;
+    left: 1rem;
+}
+
+#tarjetas_pago .tarjeta_servicio .datos_servicio .estado_p{
+    background-color: var(--red);
+}
+
+#tarjetas_pago .tarjeta_servicio .datos_servicio .estado_e{
+    background-color: var(--yellow);
+}
+
+#tarjetas_pago .tarjeta_servicio .estado_servicio{
+    border-top: var(--text-input-field) 0.2rem solid;
+}
+
+#tarjetas_pago .tarjeta_servicio .estado_servicio p{
+    width: 50%;
+    padding: 0.5rem 0.8rem;
+    margin-left: 1rem;
+    color: var(--black);
+    border-radius: 1.8rem;
+}
+
+#tarjetas_pago .tarjeta_servicio .estado_servicio .estado_p{
+    background-color: var(--red-light);
+}
+
+#tarjetas_pago .tarjeta_servicio .estado_servicio .estado_e{
+    background-color: var(--yellow_light);
+}
+
+/*HISTORIAL-----------------------------------------------------------------------*/
+.form-buscar .input-group {
+    width: 95%;
+}
+
+.form-buscar .input-group button{
+    background-color: transparent;
+    border: 0;
+}
+
+#tabla_datos {
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 90%;
+    max-height: 30rem;
+    margin: 5%;
+}
+
+#tabla_datos .table {
+    width: 90%;
+    margin: 5%;
+    margin-bottom: 1rem;
+    color: var(--black);
+    border-collapse: collapse;
+    font-size: var(--xsm);
+    text-align: center;
+    border: 2px solid var(--black);
+    border-radius: 20px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+#tabla_datos .table img{
+    width: 3rem;
+    height: 3rem;
+    cursor: pointer;
+}
+
+#tabla_datos thead {
+    letter-spacing: 0.15em;
+    background-color: var(--text-input-field);
+}
+
+#tabla_datos thead th,
+#tabla_datos tbody td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--text-input-field); /* Borde interno negro */
+}
+
+/*Agregar servicio-----------------------------------------------------------------------*/
+#info_servicio{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#info_servicio img{
+    width: 12.4rem;
+    height: 12.4rem;
+    object-fit: contain;
+    margin-bottom: 2rem;
+}
+
+#info_servicio .caja{
+    margin: 0.6rem 0rem;
+    height: 4rem;
+}
+
+.qr{
+    display: inherit;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr p {
+    background-color: var(--text-input-field);
+    border: 0.1rem solid var(--black);
+    border-radius: 0.8rem;
+    font-size: var(--ssm);
+    font-family: inherit;
+    padding: 0.6rem;
+    margin: 1rem;
+    min-height: 4rem;
+    width: 90%;
+    margin-bottom: 1.2rem;
+    margin-top: 1.2rem;
+    text-wrap: auto;
+}
+
+.qr img{
+    width: 12.4rem;
+    height: 12.4rem;
+    object-fit: contain;
+    margin-bottom: 2rem;
+}
+
+.invisible{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+#perfil_form .subrayar{
+    text-align: end;
+    cursor: pointer;
+}

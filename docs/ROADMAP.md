@@ -41,20 +41,18 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 ## Fase 2 - Frontend desacoplado (2-3 semanas)
 
 - [x] Crear scaffold `frontend/` con Vite + TypeScript (`apiFetch`, proxy `/api`).
-- [ ] Copiar HTML/CSS de `views/` al frontend Vite.
+- [x] Copiar HTML/CSS/controllers/resources a `frontend/public/` (servidos por Vite).
 - [ ] Unificar `controllers/*.js` en módulos ES.
 - [x] `src/api/client.ts` con `baseURL` desde `VITE_API_URL`.
 - [x] Proxy `/api` en `vite.config` hacia `localhost:8000`.
-- [ ] Guards de sesión por página.
-
-**Done:** misma UI, sin URLs hardcodeadas, con build reproducible.
+- [ ] Guards de sesión por página (online.js ya valida token).
 
 ## Fase 3 - Docker end-to-end (1 semana)
 
-- [~] `docker-compose.yml`: `db` + `api` (falta servicio frontend/nginx).
-- [~] `Dockerfile` multi-stage para backend (existe Dockerfile API; falta frontend).
-- [~] `.github/workflows/ci.yml`: lint (ruff) + tests (pytest) + build frontend (falta build Docker API).
-- [x] Endpoint `/health` (falta healthcheck en Compose del servicio api).
+- [x] `docker-compose.yml`: `db` + `api` + `frontend` (nginx).
+- [x] `Dockerfile` para backend y frontend.
+- [~] `.github/workflows/ci.yml`: lint + pytest + build frontend (falta build Docker en CI).
+- [x] Endpoint `/health` + healthcheck del servicio `api`.
 
 **Done:** `docker compose up` levanta todo; CI verde en cada PR.
 
@@ -64,8 +62,8 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 - [x] Transacciones atómicas para recarga/débito (`services/wallet.py` + `with_for_update`).
 - [ ] Ledger de movimientos (audit trail).
 - [ ] QR con expiración / payment intent firmado.
-- [x] Quitar pan/cvc del JWT de tarjeta (faltan refresh tokens).
-- [ ] Convertir `procesar_pagos` en worker/cron en vez de polling desde el navegador.
+- [x] Quitar pan/cvc del JWT de tarjeta; refresh tokens implementados (`POST /api/usuarios/refresh`).
+- [x] Convertir `procesar_pagos` en worker/cron en vez de polling desde el navegador.
 - [x] Reemplazar el BST en memoria por consultas SQL.
 
 **Done:** operaciones financieras seguras, auditables y sin endpoints abiertos.
