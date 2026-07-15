@@ -16,12 +16,12 @@ flowchart LR
 
 Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
-- [ ] Crear `docs/` (hecho), `README.md` raíz, `LICENSE` (MIT).
-- [ ] Crear `.gitignore` y `.env.example`.
-- [ ] Mover `SECRET_KEY` y `DATABASE_URL` a `.env`; rotar la clave.
-- [ ] Crear `requirements.txt` con las dependencias actuales.
-- [ ] Corregir el bug de sintaxis en `dbflash.sql`.
-- [ ] `git init` y primer commit; crear repo en GitHub.
+- [x] Crear `docs/`, `README.md` raíz, `LICENSE` (MIT).
+- [x] Crear `.gitignore` y `.env.example`.
+- [x] Mover `SECRET_KEY` y `DATABASE_URL` a `.env`; rotar la clave (nueva clave en `.env` local).
+- [x] Crear `requirements.txt` con las dependencias actuales.
+- [x] Corregir el bug de sintaxis en `dbflash.sql`.
+- [x] `git init`, primer commit y push a `origin/develop` en https://github.com/Lenny004/flash_wallet.
 
 **Done:** el proyecto es publicable, sin secretos en el código, con documentación y README.
 

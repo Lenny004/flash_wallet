@@ -2,60 +2,75 @@
 
 ## Metadatos del repositorio
 
-- **Nombre:** `flash-wallet` (o `Flash`).
-- **Descripción:** `Billetera digital con tarjeta virtual, pagos QR de servicios, recargas y facturacion - FastAPI + MySQL`.
-- **Topics:** `fastapi`, `digital-wallet`, `qr-payments`, `fintech`, `sqlalchemy`, `mysql`, `docker`, `python`.
-- **Rama por defecto:** `main` (protegida).
-- **Licencia:** MIT.
+- **URL:** https://github.com/Lenny004/flash_wallet
+- **Nombre:** `flash_wallet`
+- **Descripción:** `Billetera digital con tarjeta virtual, pagos QR de servicios, recargas y facturacion - FastAPI + MySQL`
+- **Topics:** `fastapi`, `digital-wallet`, `qr-payments`, `fintech`, `sqlalchemy`, `mysql`, `docker`, `python`
+- **Rama por defecto:** `main` (protegida; no hacer push directo)
+- **Rama de trabajo:** `develop` (push inicial y desarrollo diario)
+- **Licencia:** MIT
+
+## Flujo de ramas
+
+- Todo el trabajo va en `develop` o en ramas derivadas (`feature/*`, `fix/*`, `chore/*`).
+- **No subir directamente a `main`.** Los cambios llegan a `main` solo vía PR cuando corresponda.
+- El push inicial ya se hace a `origin/develop`.
 
 ## Antes del primer push (obligatorio)
 
-1. **Rotar `SECRET_KEY`** y moverla a `.env` (ver [SEGURIDAD.md](SEGURIDAD.md)). La clave actual
-   está comprometida por haber estado en el código.
-2. Mover `DATABASE_URL` a `.env`.
+1. **Rotar `SECRET_KEY`** y moverla a `.env` (ver [SEGURIDAD.md](SEGURIDAD.md)). Hecho: clave nueva en `.env` local.
+2. Mover `DATABASE_URL` a `.env`. Hecho.
 3. Confirmar que `.gitignore` excluye `.env`, `__pycache__/`, `venv/`, `node_modules/`.
-4. Corregir el bug de sintaxis en [dbflash.sql](../dbflash.sql) (coma tras `cvc`).
+4. Corregir el bug de sintaxis en [dbflash.sql](../dbflash.sql) (coma tras `cvc`). Hecho.
 5. Verificar que ningún archivo con secretos entra en el commit inicial.
 
 ## Archivos de repositorio
 
 | Archivo | Estado |
 |---------|--------|
-| `README.md` (raíz) | A crear (Fase 0) |
-| `.gitignore` | A crear (Fase 0) |
-| `.env.example` | A crear (Fase 0) |
-| `LICENSE` (MIT) | A crear (Fase 0) |
+| `README.md` (raíz) | Creado |
+| `.gitignore` | Creado |
+| `.env.example` | Creado |
+| `LICENSE` (MIT) | Creado |
+| `requirements.txt` | Creado |
 | `CONTRIBUTING.md` | A crear (Fase 1) |
 | `docs/` | Creado |
 | `.github/workflows/ci.yml` | A crear (Fase 3) |
 
-## Pasos para crear el repositorio
+## Comandos git / gh (referencia)
 
-> Ejecutar solo cuando se confirme explícitamente. Requiere `git` y `gh` (GitHub CLI) autenticado.
+> Requiere `git` y `gh` (GitHub CLI) autenticado.
 
 ```bash
-# 1. Inicializar git (si no existe)
-git init
-git branch -M main
+# Clonar (si partes de cero)
+git clone https://github.com/Lenny004/flash_wallet.git
+cd flash_wallet
+git checkout develop
 
-# 2. Verificar que no hay secretos rastreados
+# Inicializar git local (solo si el proyecto aún no tiene repo)
+git init
+git checkout -b develop
+
+# Verificar que no hay secretos rastreados
 git status
 git add .
 git status   # revisar que .env NO aparece
 
-# 3. Primer commit
+# Primer commit
 git commit -m "chore: initial commit - Flash wallet + docs"
 
-# 4. Crear el repo remoto y subir (publico por defecto)
+# Remoto y push inicial a develop (NO a main)
+git remote add origin https://github.com/Lenny004/flash_wallet.git
+git push -u origin develop
 
-# 5. Añadir topics
-gh repo edit --add-topic fastapi,digital-wallet,qr-payments,fintech,sqlalchemy,mysql,docker,python
+# Añadir topics al repo remoto
+gh repo edit Lenny004/flash_wallet --add-topic fastapi,digital-wallet,qr-payments,fintech,sqlalchemy,mysql,docker,python
 ```
 
 Para hacerlo público más adelante:
 
 ```bash
-gh repo edit --visibility public
+gh repo edit Lenny004/flash_wallet --visibility public
 ```
 
 ## Protección de rama
@@ -63,11 +78,11 @@ gh repo edit --visibility public
 Una vez con CI activo:
 
 ```bash
-gh api repos/:owner/flash-wallet/branches/main/protection \
+gh api repos/Lenny004/flash_wallet/branches/main/protection \
   -X PUT -F required_status_checks.strict=true
 ```
 
-O configurarlo desde Settings > Branches: requerir PR y checks de CI en verde antes de merge.
+O configurarlo desde Settings > Branches: requerir PR y checks de CI en verde antes de merge a `main`.
 
 ## CI mínimo (GitHub Actions)
 
@@ -91,6 +106,6 @@ jobs:
 
 ## Convención de commits y ramas
 
-- Ramas: `feature/<nombre>`, `fix/<nombre>`, `chore/<nombre>`.
+- Ramas: `develop` (integración), `feature/<nombre>`, `fix/<nombre>`, `chore/<nombre>`.
 - Commits: estilo convencional (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
 - Versionado semántico con tags (`v0.1.0`, `v0.2.0`, ...).
