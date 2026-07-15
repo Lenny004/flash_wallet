@@ -149,5 +149,7 @@ Todas viven en `.env` (no versionado). Ver [.env.example](../.env.example) en la
 
 ## override para desarrollo
 
+Copia `docker-compose.override.yml.example` a `docker-compose.override.yml` para activar hot reload en local.
+
 `docker-compose.override.yml` monta volúmenes de código y activa `--reload` para hot reload
 en desarrollo, sin afectar la configuración de producción.
