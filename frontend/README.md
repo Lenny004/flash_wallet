@@ -13,7 +13,12 @@ frontend/
 │   ├── controllers/        # JS de la app (copia de controllers/)
 │   ├── resources/          # Imágenes, iconos, libs JS (copia de resources/)
 │   └── fonts/              # Fuentes (copia de fonts/)
-├── src/                    # Scaffold TypeScript (opcional, no usado por las páginas)
+├── src/                    # Módulos ES (migración gradual; ver plan abajo)
+│   ├── lib/auth.ts         # refreshAccessTokens, apiFetchAuth (fuente de verdad TS)
+│   ├── api/client.ts       # apiFetch para código nuevo (reutiliza lib/auth)
+│   ├── main.ts             # Bridge temporal window.* (solo index.html)
+│   ├── demo/refresh.ts     # Demo opcional de módulos ES en index.html
+│   └── pages/              # Futuros entry points por página (ver src/pages/README.md)
 ├── vite.config.ts          # Proxy /api → http://127.0.0.1:8000
 └── package.json
 ```
@@ -81,3 +86,37 @@ En desarrollo, las peticiones a `/api/*` se reenvían a `http://127.0.0.1:8000` 
 3. Abre `http://localhost:5173` → login.
 4. Verifica que cargan CSS, fuentes e imágenes (pestaña Red del navegador).
 5. Inicia sesión; las llamadas deben ir a `/api/...` (proxy activo).
+
+## Migración a módulos ES (en curso)
+
+Las páginas en `public/pages/` siguen usando scripts globales (`<script src="/controllers/...">`). La migración es **gradual** para no romper `auth.js`, jQuery ni el orden de carga actual.
+
+### Fase actual — scaffolding
+
+| Pieza | Rol |
+|-------|-----|
+| `src/lib/auth.ts` | Lógica de `refreshAccessTokens` y `apiFetchAuth` (equivalente TS de `public/controllers/auth.js`) |
+| `src/api/client.ts` | `apiFetch` para código nuevo; importa `refreshAccessTokens` desde `lib/auth` |
+| `src/main.ts` | Expone `window.apiFetchAuth` / `window.refreshAccessTokens` como bridge temporal |
+| `index.html` | Carga `main.ts` + demo opcional `src/demo/refresh.ts` |
+
+### Limitación importante
+
+`index.html` (entrada Vite) carga `main.ts`, pero **`/pages/*.html` no**. El bridge `window.*` no llega a las páginas legacy. Hasta migrar cada HTML, esas páginas siguen usando `public/controllers/auth.js`.
+
+### Próximos pasos
+
+1. Migrar una página a la vez → ver [`src/pages/README.md`](src/pages/README.md).
+2. Sustituir `<script src="/controllers/auth.js">` por `import` desde `src/lib/auth.ts`.
+3. Cuando ninguna página use `auth.js`, eliminar el duplicado en `public/controllers/`.
+
+### Probar el scaffold en dev
+
+```bash
+npm run dev
+```
+
+Abre `http://localhost:5173` (antes de la redirección automática, o en la consola del navegador):
+
+- Debe aparecer `[Flash ES] auth.ts cargado; refreshAccessTokens disponible`.
+- En consola: `await window.__flashRefreshDemo()` (solo si hay `refresh_token` en localStorage).

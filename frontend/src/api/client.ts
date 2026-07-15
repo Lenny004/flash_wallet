@@ -1,3 +1,5 @@
+import { refreshAccessTokens } from '../lib/auth';
+
 export type AuthMode = 'usuario' | 'tarjeta' | 'none';
 
 export interface ApiFetchOptions extends RequestInit {
@@ -13,23 +15,6 @@ function getToken(auth: AuthMode): string | null {
 
   const key = auth === 'usuario' ? 'token_usuario' : 'token_tarjeta';
   return localStorage.getItem(key);
-}
-
-async function refreshAccessTokens(): Promise<boolean> {
-  const refresh = localStorage.getItem('refresh_token');
-  if (!refresh) return false;
-
-  const res = await fetch(`${baseUrl}/api/usuarios/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh_token: refresh }),
-  });
-  if (!res.ok) return false;
-
-  const data = await res.json();
-  if (data.token_usuario) localStorage.setItem('token_usuario', data.token_usuario);
-  if (data.token_tarjeta) localStorage.setItem('token_tarjeta', data.token_tarjeta);
-  return true;
 }
 
 export async function apiFetch(
