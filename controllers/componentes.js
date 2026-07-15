@@ -182,6 +182,7 @@ function logOut() {
         stopKeydownPropagation: false
     }).then((result) => {
         if (result.isConfirmed) {
+            if (typeof revokeRefreshToken === 'function') revokeRefreshToken();
             // Eliminar los tokens almacenados en el navegador
             localStorage.removeItem('token_usuario');
             localStorage.removeItem('token_tarjeta');

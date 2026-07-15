@@ -6,6 +6,7 @@ from app.api.deps import get_db, verificar_token_U
 from app.api.routes.tarjeta import crear_tarjeta_usuario
 from app.core.rate_limit import rate_limit
 from app.core.security import crear_access_token, crear_refresh_token, verificar_refresh_token
+from app.core.token_blacklist import revoke
 from app.models.tarjeta import Tarjeta
 from app.models.usuarios import Usuario
 from app.schemas.usuario_schema import (
@@ -160,6 +161,15 @@ def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
         "token_usuario": token_usuario,
         "token_tarjeta": token_tarjeta,
     }
+
+
+@routerUsuario.post("/logout", response_model=None)
+def logout_usuario(body: RefreshRequest):
+    """
+    Revoca el refresh token (blacklist en memoria). Auth opcional.
+    """
+    revoke(body.refresh_token)
+    return {"estado": 1, "mensaje": "Sesión cerrada correctamente."}
 
 
 @routerUsuario.get("/readOne")

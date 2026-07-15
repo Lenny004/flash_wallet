@@ -4,6 +4,7 @@ import jwt
 from fastapi import Header, HTTPException
 
 from app.core.config import settings
+from app.core.token_blacklist import is_revoked, new_jti
 
 
 def crear_access_token(data: dict) -> str:
@@ -15,6 +16,7 @@ def crear_access_token(data: dict) -> str:
 def crear_refresh_token(data: dict) -> str:
     payload = data.copy()
     payload["type"] = "refresh"
+    payload["jti"] = new_jti()
     payload["exp"] = datetime.now(timezone.utc) + timedelta(days=settings.jwt_refresh_expire_days)
     return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
 
@@ -34,6 +36,9 @@ def verificar_refresh_token(token: str) -> dict:
 
     if not payload.get("idusuario"):
         raise HTTPException(status_code=401, detail="Token inválido: datos faltantes.")
+
+    if is_revoked(token):
+        raise HTTPException(status_code=401, detail="Token revocado.")
 
     return payload
 

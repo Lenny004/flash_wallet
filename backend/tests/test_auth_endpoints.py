@@ -69,3 +69,24 @@ def test_refresh_token_invalido_retorna_401(client):
         json={"refresh_token": "token-invalido"},
     )
     assert response.status_code == 401
+
+
+def test_logout_revoca_refresh_token(client):
+    from app.core.security import crear_refresh_token
+
+    refresh = crear_refresh_token({"idusuario": 1})
+    response = client.post("/api/usuarios/logout", json={"refresh_token": refresh})
+    assert response.status_code == 200
+    assert response.json()["estado"] == 1
+
+    refresh_response = client.post(
+        "/api/usuarios/refresh",
+        json={"refresh_token": refresh},
+    )
+    assert refresh_response.status_code == 401
+    assert "revocado" in refresh_response.json()["detail"].lower()
+
+
+def test_logout_sin_body_retorna_422(client):
+    response = client.post("/api/usuarios/logout")
+    assert response.status_code == 422

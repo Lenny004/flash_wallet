@@ -83,5 +83,5 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 1. Unificar `controllers/*.js` en módulos ES (import/export, sin globals duplicados).
 2. Eliminar carpetas legacy (`api/`, `views/`, `controllers/`, `css/`) cuando Vite cubra todo el flujo.
 3. Desplegar en cloud: API (Railway/Render/Fly.io) + frontend estático (Vercel/Netlify) con HTTPS.
-4. Blacklist de refresh tokens en logout (revocación server-side, no solo `localStorage.clear`).
+4. [x] Blacklist de refresh tokens en logout (revocación server-side, no solo `localStorage.clear`).
 5. Guards de sesión unificados en todas las páginas (hoy solo `online.js` valida token de forma consistente).
