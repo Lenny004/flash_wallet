@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Flash</title>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+    <link type="text/css" rel="stylesheet" href="/css/fuente.css">
+    <link rel="icon" type="icon/png" href="/resources/imgs/Flash_logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body>
+    <main class="dashboard">
+        <div class="encabezado">
+            <h1 class="titulo">¡Se ha creado tu tarjeta Flash!</h1>
+        </div>
+        <p class="nota">
+            <b>
+                IMPORTANTE: Podrás visualizar luego estos datos en el menú del sitio, luego de ingresar sesión
+            </b>
+        </p>
+        <div class="tarjeta_digital" id="datos_tarjeta">
+            
+        </div>
+        <button class="btn primary-button" onclick="loginContinue()">Continuar</button>
+    </main>
+    <script type="text/javascript" src="/controllers/config.js"></script>
+    <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
+    <script type="module" src="/src/pages/tarjeta_digital.ts"></script>
+</body>
+
+</html>

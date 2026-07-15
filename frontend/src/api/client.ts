@@ -1,54 +1,72 @@
+/**
+ * @file Cliente HTTP centralizado con soporte de autenticación y renovación de tokens.
+ */
+
 import { refreshAccessTokens } from '../lib/auth';
 
+/** Modo de autenticación para las peticiones a la API. */
 export type AuthMode = 'usuario' | 'tarjeta' | 'none';
 
+/** Opciones extendidas de `fetch` con modo de autenticación opcional. */
 export interface ApiFetchOptions extends RequestInit {
   auth?: AuthMode;
 }
 
-const baseUrl = import.meta.env.VITE_API_URL ?? '';
+const urlBaseApi = import.meta.env.VITE_API_URL ?? '';
 
-function getToken(auth: AuthMode): string | null {
-  if (auth === 'none') {
+/**
+ * Obtiene el token JWT almacenado según el modo de autenticación indicado.
+ * @param modoAuth - Modo de autenticación solicitado.
+ * @returns Token almacenado o `null` si no aplica auth o no existe el token.
+ */
+function obtenerToken(modoAuth: AuthMode): string | null {
+  if (modoAuth === 'none') {
     return null;
   }
 
-  const key = auth === 'usuario' ? 'token_usuario' : 'token_tarjeta';
-  return localStorage.getItem(key);
+  const claveToken = modoAuth === 'usuario' ? 'token_usuario' : 'token_tarjeta';
+  return localStorage.getItem(claveToken);
 }
 
+/**
+ * Realiza una petición HTTP a la API usando la URL base de Vite.
+ * Adjunta el token Bearer si se indica auth y reintenta tras 401 renovando tokens.
+ * @param ruta - Path relativo al endpoint (p. ej. `/api/usuarios/login`).
+ * @param opciones - Opciones de fetch; `auth` define qué token usar (`'none'` por defecto).
+ * @returns Respuesta HTTP de `fetch`.
+ */
 export async function apiFetch(
-  path: string,
-  options: ApiFetchOptions = {},
+  ruta: string,
+  opciones: ApiFetchOptions = {},
 ): Promise<Response> {
-  const { auth = 'none', headers: initHeaders, ...rest } = options;
-  const headers = new Headers(initHeaders);
+  const { auth = 'none', headers: encabezadosIniciales, ...opcionesRestantes } = opciones;
+  const encabezados = new Headers(encabezadosIniciales);
 
   if (auth !== 'none') {
-    const token = getToken(auth);
+    const token = obtenerToken(auth);
     if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+      encabezados.set('Authorization', `Bearer ${token}`);
     }
   }
 
-  const url = `${baseUrl}${path}`;
-  let res = await fetch(url, { ...rest, headers });
+  const urlCompleta = `${urlBaseApi}${ruta}`;
+  let respuesta = await fetch(urlCompleta, { ...opcionesRestantes, headers: encabezados });
 
-  if (res.status === 401 && auth !== 'none') {
-    const ok = await refreshAccessTokens();
-    if (!ok) {
+  if (respuesta.status === 401 && auth !== 'none') {
+    const refreshExitoso = await refreshAccessTokens();
+    if (!refreshExitoso) {
       localStorage.clear();
       window.location.href = '/pages/login.html';
-      return res;
+      return respuesta;
     }
-    const token = getToken(auth);
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+    const tokenRenovado = obtenerToken(auth);
+    if (tokenRenovado) {
+      encabezados.set('Authorization', `Bearer ${tokenRenovado}`);
     } else {
-      headers.delete('Authorization');
+      encabezados.delete('Authorization');
     }
-    res = await fetch(url, { ...rest, headers });
+    respuesta = await fetch(urlCompleta, { ...opcionesRestantes, headers: encabezados });
   }
 
-  return res;
+  return respuesta;
 }

@@ -25,6 +25,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def obtener_usuarios(db: Session = Depends(get_db)):
     """
     Indica si existen usuarios registrados (primer uso), sin exponer datos sensibles.
+    Auth: no requerida.
     """
     hay_usuarios = db.query(Usuario.id_usuario).first() is not None
     if not hay_usuarios:
@@ -35,12 +36,13 @@ def obtener_usuarios(db: Session = Depends(get_db)):
 @routerUsuario.post("/")
 def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
     """
-    Crea un nuevo usuario en la base de datos.
+    Registra un nuevo usuario y crea su tarjeta digital asociada.
+    Auth: no requerida.
     """
     if db.query(Usuario).filter((Usuario.email == body.email) | (Usuario.usuario == body.usuario)).first():
         raise HTTPException(status_code=400, detail="El email o el usuario ya están registrados.")
 
-    contra_encriptada = pwd_context.hash(body.contra)
+    contrasena_encriptada = pwd_context.hash(body.contra)
     nuevo_usuario = Usuario(
         nombres=body.nombres,
         apellidos=body.apellidos,
@@ -48,7 +50,7 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
         telefono=body.telefono,
         email=body.email,
         usuario=body.usuario,
-        contra=contra_encriptada,
+        contra=contrasena_encriptada,
         img_usuario=body.img_usuario,
     )
 
@@ -56,7 +58,7 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(nuevo_usuario)
 
-    tarjeta = crear_tarjeta_usuario(nuevo_usuario.id_usuario, db)
+    tarjeta_creada = crear_tarjeta_usuario(nuevo_usuario.id_usuario, db)
 
     return {
         "estado": 1,
@@ -67,11 +69,13 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
             "apellidos": nuevo_usuario.apellidos,
             "usuario": nuevo_usuario.usuario,
         },
+        # CVC en claro solo aquí (una vez) para tarjeta_digital.html tras el registro.
+        # GET /api/tarjeta/readOne devuelve cvc enmascarado ("***").
         "tarjeta": {
-            "pan": tarjeta.pan,
-            "cvc": tarjeta.cvc,
-            "balance": tarjeta.balance,
-            "fecha_creacion": tarjeta.fecha_creacion,
+            "pan": tarjeta_creada.pan,
+            "cvc": tarjeta_creada.cvc,
+            "balance": tarjeta_creada.balance,
+            "fecha_creacion": tarjeta_creada.fecha_creacion,
         },
     }
 
@@ -79,38 +83,39 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
 @routerUsuario.post("/login", response_model=None)
 def login_usuario(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     """
-    Verifica las credenciales del usuario.
+    Valida credenciales y devuelve tokens de acceso (usuario, tarjeta) y refresh.
+    Auth: no requerida (rate limit por IP).
     """
-    client_ip = request.client.host if request.client else "unknown"
-    rate_limit(f"login:{client_ip}", limit=5, window=60)
+    ip_cliente = request.client.host if request.client else "unknown"
+    rate_limit(f"login:{ip_cliente}", limit=5, window=60)
 
-    usuario = db.query(Usuario).filter(Usuario.usuario == body.usuario).first()
+    usuario_encontrado = db.query(Usuario).filter(Usuario.usuario == body.usuario).first()
 
-    if not usuario or not pwd_context.verify(body.contra, usuario.contra):
+    if not usuario_encontrado or not pwd_context.verify(body.contra, usuario_encontrado.contra):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos.")
 
-    tarjeta = db.query(Tarjeta).filter(Tarjeta.id_usuario == usuario.id_usuario).first()
-    if not tarjeta:
+    tarjeta_asociada = db.query(Tarjeta).filter(Tarjeta.id_usuario == usuario_encontrado.id_usuario).first()
+    if not tarjeta_asociada:
         raise HTTPException(status_code=404, detail="No se encontró una tarjeta asociada a este usuario.")
 
     token_usuario = crear_access_token(
         {
-            "idusuario": usuario.id_usuario,
-            "usuario": usuario.usuario,
-            "nombres": usuario.nombres,
-            "apellidos": usuario.apellidos,
-            "telefono": usuario.telefono,
-            "direccion": usuario.direccion,
-            "email": usuario.email,
+            "idusuario": usuario_encontrado.id_usuario,
+            "usuario": usuario_encontrado.usuario,
+            "nombres": usuario_encontrado.nombres,
+            "apellidos": usuario_encontrado.apellidos,
+            "telefono": usuario_encontrado.telefono,
+            "direccion": usuario_encontrado.direccion,
+            "email": usuario_encontrado.email,
         }
     )
     token_tarjeta = crear_access_token(
         {
-            "id_tarjeta": tarjeta.id_tarjeta,
-            "nombres": usuario.nombres + " " + usuario.apellidos,
+            "id_tarjeta": tarjeta_asociada.id_tarjeta,
+            "nombres": usuario_encontrado.nombres + " " + usuario_encontrado.apellidos,
         }
     )
-    refresh_token = crear_refresh_token({"idusuario": usuario.id_usuario})
+    refresh_token = crear_refresh_token({"idusuario": usuario_encontrado.id_usuario})
 
     return {
         "estado": 1,
@@ -124,34 +129,35 @@ def login_usuario(request: Request, body: LoginRequest, db: Session = Depends(ge
 @routerUsuario.post("/refresh", response_model=None)
 def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
     """
-    Renueva los access tokens usando un refresh token válido.
+    Renueva los access tokens de usuario y tarjeta usando un refresh token válido.
+    Auth: no requerida (solo refresh token en el body).
     """
     payload = verificar_refresh_token(body.refresh_token)
     id_usuario = payload["idusuario"]
 
-    usuario = db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
-    if not usuario:
+    usuario_encontrado = db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
+    if not usuario_encontrado:
         raise HTTPException(status_code=401, detail="Usuario no encontrado.")
 
-    tarjeta = db.query(Tarjeta).filter(Tarjeta.id_usuario == id_usuario).first()
-    if not tarjeta:
+    tarjeta_asociada = db.query(Tarjeta).filter(Tarjeta.id_usuario == id_usuario).first()
+    if not tarjeta_asociada:
         raise HTTPException(status_code=404, detail="No se encontró una tarjeta asociada a este usuario.")
 
     token_usuario = crear_access_token(
         {
-            "idusuario": usuario.id_usuario,
-            "usuario": usuario.usuario,
-            "nombres": usuario.nombres,
-            "apellidos": usuario.apellidos,
-            "telefono": usuario.telefono,
-            "direccion": usuario.direccion,
-            "email": usuario.email,
+            "idusuario": usuario_encontrado.id_usuario,
+            "usuario": usuario_encontrado.usuario,
+            "nombres": usuario_encontrado.nombres,
+            "apellidos": usuario_encontrado.apellidos,
+            "telefono": usuario_encontrado.telefono,
+            "direccion": usuario_encontrado.direccion,
+            "email": usuario_encontrado.email,
         }
     )
     token_tarjeta = crear_access_token(
         {
-            "id_tarjeta": tarjeta.id_tarjeta,
-            "nombres": usuario.nombres + " " + usuario.apellidos,
+            "id_tarjeta": tarjeta_asociada.id_tarjeta,
+            "nombres": usuario_encontrado.nombres + " " + usuario_encontrado.apellidos,
         }
     )
 
@@ -166,21 +172,23 @@ def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
 @routerUsuario.post("/logout", response_model=None)
 def logout_usuario(body: RefreshRequest):
     """
-    Revoca el refresh token (blacklist en memoria). Auth opcional.
+    Revoca el refresh token añadiéndolo a la blacklist en memoria.
+    Auth: no requerida (solo refresh token en el body).
     """
     revoke(body.refresh_token)
     return {"estado": 1, "mensaje": "Sesión cerrada correctamente."}
 
 
 @routerUsuario.get("/readOne")
-def obtener_usuarios(datos_usuario=Depends(verificar_token_U), db: Session = Depends(get_db)):
+def obtener_usuario_actual(datos_usuario=Depends(verificar_token_U), db: Session = Depends(get_db)):
     """
-    Obtiene los datos del usuario que ingresó en el login, basado en el token JWT.
+    Devuelve los datos del usuario autenticado según el token JWT.
+    Auth: requerida (token de usuario).
     """
     if not datos_usuario:
         return {"estado": 0, "exception": "Token inválido o expirado."}
 
-    usuario = db.query(Usuario).filter(Usuario.id_usuario == datos_usuario.get("idusuario")).first()
+    usuario_encontrado = db.query(Usuario).filter(Usuario.id_usuario == datos_usuario.get("idusuario")).first()
 
     return {
         "estado": 1,
@@ -188,50 +196,51 @@ def obtener_usuarios(datos_usuario=Depends(verificar_token_U), db: Session = Dep
         "usuario": datos_usuario.get("usuario"),
         "nombres": datos_usuario.get("nombres"),
         "apellidos": datos_usuario.get("apellidos"),
-        "telefono": usuario.telefono,
-        "direccion": usuario.direccion,
-        "email": usuario.email,
+        "telefono": usuario_encontrado.telefono,
+        "direccion": usuario_encontrado.direccion,
+        "email": usuario_encontrado.email,
     }
 
 
 @routerUsuario.put("/update")
 def actualizar_usuario(body: UsuarioUpdate, datos_usuario=Depends(verificar_token_U), db: Session = Depends(get_db)):
     """
-    Actualiza los datos de un usuario existente en la base de datos.
+    Actualiza dirección, teléfono y email del usuario autenticado.
+    Auth: requerida (token de usuario).
     """
     if not datos_usuario:
         return {"estado": 0, "exception": "Token inválido o expirado."}
 
-    usuario = db.query(Usuario).filter(Usuario.id_usuario == datos_usuario.get("idusuario")).first()
+    usuario_encontrado = db.query(Usuario).filter(Usuario.id_usuario == datos_usuario.get("idusuario")).first()
 
-    if not usuario:
+    if not usuario_encontrado:
         raise HTTPException(status_code=404, detail="El usuario no existe.")
 
     if body.direccion is not None:
-        usuario.direccion = body.direccion
+        usuario_encontrado.direccion = body.direccion
     if body.telefono is not None:
-        usuario.telefono = body.telefono
+        usuario_encontrado.telefono = body.telefono
     if body.email is not None:
         if db.query(Usuario).filter(
             Usuario.email == body.email, Usuario.id_usuario != datos_usuario.get("idusuario")
         ).first():
             raise HTTPException(status_code=400, detail="El email ya está registrado por otro usuario.")
-        usuario.email = body.email
+        usuario_encontrado.email = body.email
 
     db.commit()
-    db.refresh(usuario)
+    db.refresh(usuario_encontrado)
 
     return {
         "estado": 1,
         "mensaje": "Usuario actualizado exitosamente.",
         "usuario_actualizado": {
-            "id_usuario": usuario.id_usuario,
-            "nombres": usuario.nombres,
-            "apellidos": usuario.apellidos,
-            "usuario": usuario.usuario,
-            "email": usuario.email,
-            "telefono": usuario.telefono,
-            "direccion": usuario.direccion,
-            "img_usuario": usuario.img_usuario,
+            "id_usuario": usuario_encontrado.id_usuario,
+            "nombres": usuario_encontrado.nombres,
+            "apellidos": usuario_encontrado.apellidos,
+            "usuario": usuario_encontrado.usuario,
+            "email": usuario_encontrado.email,
+            "telefono": usuario_encontrado.telefono,
+            "direccion": usuario_encontrado.direccion,
+            "img_usuario": usuario_encontrado.img_usuario,
         },
     }

@@ -15,38 +15,40 @@ routerHistorial = APIRouter()
 @routerHistorial.get("/read")
 def obtener_historial(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
-    Obtiene todos los registros de historial de la tarjeta actual en la base de datos.
+    Lista todos los registros de depósito (historial) de la tarjeta autenticada.
+    Auth: requerida (token de tarjeta).
     """
     if not datos_tarjeta:
         return {"estado": 0, "exception": "Token inválido o expirado."}
 
-    historial = db.query(Historial).filter(Historial.id_tarjeta == datos_tarjeta.get("id_tarjeta")).all()
-    if not historial:
+    registros_historial = db.query(Historial).filter(Historial.id_tarjeta == datos_tarjeta.get("id_tarjeta")).all()
+    if not registros_historial:
         return {"estado": 0, "exception": "No hay registros de historial de deposito."}
 
-    historial_response = [
+    historial_respuesta = [
         TablaHistorial(
-            id_historial=h.id_historial,
-            monto_agregado=float(h.monto_agregado),
-            fecha_historial=h.fecha_historial,
-            hora_historial=h.hora_historial,
-            id_tarjeta=h.id_tarjeta,
+            id_historial=registro.id_historial,
+            monto_agregado=float(registro.monto_agregado),
+            fecha_historial=registro.fecha_historial,
+            hora_historial=registro.hora_historial,
+            id_tarjeta=registro.id_tarjeta,
         )
-        for h in historial
+        for registro in registros_historial
     ]
 
-    return {"estado": 1, "dataset": historial_response}
+    return {"estado": 1, "dataset": historial_respuesta}
 
 
 @routerHistorial.get("/movimientos")
 def obtener_movimientos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
-    Lista los movimientos de saldo de la tarjeta actual, más recientes primero.
+    Lista los movimientos de saldo de la tarjeta autenticada, más recientes primero.
+    Auth: requerida (token de tarjeta).
     """
     if not datos_tarjeta:
         return {"estado": 0, "exception": "Token inválido o expirado."}
 
-    movimientos = (
+    movimientos_tarjeta = (
         db.query(Movimiento)
         .filter(Movimiento.id_tarjeta == datos_tarjeta.get("id_tarjeta"))
         .order_by(Movimiento.creado_en.desc())
@@ -55,16 +57,16 @@ def obtener_movimientos(datos_tarjeta=Depends(verificar_token_t), db: Session = 
 
     dataset = [
         TablaMovimiento(
-            id_movimiento=m.id_movimiento,
-            id_tarjeta=m.id_tarjeta,
-            tipo=m.tipo,
-            monto=float(m.monto),
-            saldo_anterior=float(m.saldo_anterior),
-            saldo_nuevo=float(m.saldo_nuevo),
-            referencia=m.referencia,
-            creado_en=m.creado_en,
+            id_movimiento=movimiento.id_movimiento,
+            id_tarjeta=movimiento.id_tarjeta,
+            tipo=movimiento.tipo,
+            monto=float(movimiento.monto),
+            saldo_anterior=float(movimiento.saldo_anterior),
+            saldo_nuevo=float(movimiento.saldo_nuevo),
+            referencia=movimiento.referencia,
+            creado_en=movimiento.creado_en,
         )
-        for m in movimientos
+        for movimiento in movimientos_tarjeta
     ]
 
     return {"estado": 1, "dataset": dataset}
@@ -73,28 +75,29 @@ def obtener_movimientos(datos_tarjeta=Depends(verificar_token_t), db: Session = 
 @routerHistorial.post("/buscar")
 def buscar_historial(body: BuscarHistorialRequest, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
-    Permite buscar los registros de historial según el monto_agregado
+    Busca un registro de historial por monto exacto en la tarjeta autenticada.
+    Auth: requerida (token de tarjeta).
     """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
 
-    monto = Decimal(str(body.monto_agregado))
-    historial = (
+    monto_buscado = Decimal(str(body.monto_agregado))
+    registro_encontrado = (
         db.query(Historial)
         .filter(
             Historial.id_tarjeta == datos_tarjeta.get("id_tarjeta"),
-            Historial.monto_agregado == monto,
+            Historial.monto_agregado == monto_buscado,
         )
         .first()
     )
 
-    if historial:
+    if registro_encontrado:
         resultado = {
-            "id_historial": historial.id_historial,
-            "monto_agregado": historial.monto_agregado,
-            "fecha_historial": historial.fecha_historial,
-            "hora_historial": historial.hora_historial,
-            "id_tarjeta": historial.id_tarjeta,
+            "id_historial": registro_encontrado.id_historial,
+            "monto_agregado": registro_encontrado.monto_agregado,
+            "fecha_historial": registro_encontrado.fecha_historial,
+            "hora_historial": registro_encontrado.hora_historial,
+            "id_tarjeta": registro_encontrado.id_tarjeta,
         }
         return {"estado": 1, "mensaje": "Registro encontrado arbol", "dataset": [resultado]}
 
@@ -107,7 +110,8 @@ def buscar_historial(body: BuscarHistorialRequest, datos_tarjeta=Depends(verific
 @routerHistorial.post("/recargar")
 def recargar(body: BuscarHistorialRequest, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
-    Actualiza el monto de la tarjeta digital actual del usuario
+    Recarga saldo en la tarjeta digital autenticada y registra el depósito en historial.
+    Auth: requerida (token de tarjeta).
     """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
@@ -120,29 +124,30 @@ def recargar(body: BuscarHistorialRequest, datos_tarjeta=Depends(verificar_token
 @routerHistorial.post("/delete")
 def eliminar_historial(body: EliminarHistorial, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
-    Elimina un historial específico por su ID.
+    Elimina un registro de historial de depósito por su ID en la tarjeta autenticada.
+    Auth: requerida (token de tarjeta).
     """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
 
     id_tarjeta = datos_tarjeta.get("id_tarjeta")
-    idhistorial = body.id_historial
-    if not idhistorial:
+    id_historial = body.id_historial
+    if not id_historial:
         raise HTTPException(status_code=400, detail="ID del historial no proporcionado.")
 
     try:
-        historial = db.query(Historial).filter(
-            Historial.id_historial == idhistorial,
+        registro_historial = db.query(Historial).filter(
+            Historial.id_historial == id_historial,
             Historial.id_tarjeta == id_tarjeta,
         ).first()
 
-        if not historial:
+        if not registro_historial:
             raise HTTPException(status_code=404, detail="Historial de deposito no encontrado.")
 
-        db.delete(historial)
+        db.delete(registro_historial)
         db.commit()
         return {"estado": 1, "message": "Historial de deposito eliminado correctamente."}
-    except Exception as e:
+    except Exception as error:
         db.rollback()
-        print(f"Error al eliminar el historial: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al eliminar el historial: {str(e)}")
+        print(f"Error al eliminar el historial: {error}")
+        raise HTTPException(status_code=500, detail=f"Error al eliminar el historial: {str(error)}")

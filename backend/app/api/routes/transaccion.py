@@ -16,16 +16,20 @@ routerTransaccion = APIRouter()
 
 
 @routerTransaccion.get("/read")
-def obtener_facturas(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+def obtener_transacciones(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+    """
+    Lista las transacciones pendientes (no completadas) de la tarjeta autenticada.
+    Auth: requerida (token de tarjeta).
+    """
     if not datos_tarjeta:
         raise HTTPException(status_code=400, detail="Token inválido o expirado.")
 
-    idtarjeta = datos_tarjeta.get("id_tarjeta")
+    id_tarjeta = datos_tarjeta.get("id_tarjeta")
 
-    if not idtarjeta:
+    if not id_tarjeta:
         raise HTTPException(status_code=400, detail="No se encontró el ID de la tarjeta.")
 
-    query = (
+    consulta_transacciones = (
         db.query(
             Transaccion.id_transaccion,
             Transaccion.fecha_transaccion,
@@ -41,51 +45,51 @@ def obtener_facturas(datos_tarjeta=Depends(verificar_token_t), db: Session = Dep
         .join(Servicio, Transaccion.id_servicio == Servicio.id_servicio)
         .filter(
             and_(
-                Transaccion.id_tarjeta == idtarjeta,
+                Transaccion.id_tarjeta == id_tarjeta,
                 Transaccion.id_estado != EstadoTransaccion.COMPLETADA,
             )
         )
     )
 
     try:
-        result = query.all()
+        filas_resultado = consulta_transacciones.all()
 
-        if not result:
+        if not filas_resultado:
             return {"estado": 0, "detail": "No se encontraron transacciones."}
 
-        transaccion = [
+        transacciones_respuesta = [
             {
-                "id_transaccion": row.id_transaccion,
-                "fecha_transaccion": str(row.fecha_transaccion),
-                "hora_transaccion": str(row.hora_transaccion),
-                "monto": float(row.monto),
-                "frecuencia": float(row.frecuencia),
-                "descripcion": str(row.descripcion),
-                "id_estado": row.id_estado,
-                "estado": str(row.estado),
-                "nombre": str(row.nombre),
+                "id_transaccion": fila.id_transaccion,
+                "fecha_transaccion": str(fila.fecha_transaccion),
+                "hora_transaccion": str(fila.hora_transaccion),
+                "monto": float(fila.monto),
+                "frecuencia": float(fila.frecuencia),
+                "descripcion": str(fila.descripcion),
+                "id_estado": fila.id_estado,
+                "estado": str(fila.estado),
+                "nombre": str(fila.nombre),
             }
-            for row in result
+            for fila in filas_resultado
         ]
 
-        return {"estado": 1, "dataset": transaccion}
+        return {"estado": 1, "dataset": transacciones_respuesta}
 
-    except Exception as e:
-        print(f"Error al obtener las facturas: {e}")
-        raise HTTPException(status_code=500, detail=f"Error al obtener las facturas: {str(e)}")
+    except Exception as error:
+        print(f"Error al obtener las facturas: {error}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener las facturas: {str(error)}")
 
 
 @routerTransaccion.post("/crear")
 def crear_transaccion(body: TransaccionDesdeIntent, datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
     """
-    Crea una nueva transacción en la base de datos.
-    Requiere un payment intent firmado obtenido al escanear el QR.
+    Crea una transacción validando un payment intent firmado obtenido al escanear un QR.
+    Auth: requerida (token de tarjeta).
     """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
 
     try:
-        intent = verificar_intent(
+        intent_verificado = verificar_intent(
             {
                 "id_servicio": body.id_servicio,
                 "monto": body.monto,
@@ -99,11 +103,11 @@ def crear_transaccion(body: TransaccionDesdeIntent, datos_tarjeta=Depends(verifi
         nueva_transaccion = Transaccion(
             fecha_transaccion=body.fecha_transaccion,
             hora_transaccion=body.hora_transaccion,
-            monto=intent["monto"],
-            frecuencia=intent["frecuencia"],
-            descripcion=intent["descripcion"],
+            monto=intent_verificado["monto"],
+            frecuencia=intent_verificado["frecuencia"],
+            descripcion=intent_verificado["descripcion"],
             id_tarjeta=datos_tarjeta.get("id_tarjeta"),
-            id_servicio=intent["id_servicio"],
+            id_servicio=intent_verificado["id_servicio"],
             id_estado=body.id_estado,
         )
 
@@ -113,22 +117,26 @@ def crear_transaccion(body: TransaccionDesdeIntent, datos_tarjeta=Depends(verifi
 
         return {"estado": 1, "mensaje": "Transacción creada exitosamente."}
 
-    except KeyError as ke:
-        print(f"Error de clave faltante: {ke}")
-        raise HTTPException(status_code=422, detail=f"Falta el campo obligatorio: {ke}")
-    except ValueError as ve:
-        print(f"Error de conversión: {ve}")
+    except KeyError as clave_faltante:
+        print(f"Error de clave faltante: {clave_faltante}")
+        raise HTTPException(status_code=422, detail=f"Falta el campo obligatorio: {clave_faltante}")
+    except ValueError as error_conversion:
+        print(f"Error de conversión: {error_conversion}")
         raise HTTPException(status_code=422, detail="Error en el formato de los datos enviados.")
-    except ValidationError as e:
-        print(f"Errores de validación: {e.json()}")
-        raise HTTPException(status_code=422, detail=e.errors())
-    except Exception as e:
-        print(f"Error inesperado: {e}")
+    except ValidationError as error_validacion:
+        print(f"Errores de validación: {error_validacion.json()}")
+        raise HTTPException(status_code=422, detail=error_validacion.errors())
+    except Exception as error:
+        print(f"Error inesperado: {error}")
         raise HTTPException(status_code=500, detail="Ocurrió un error interno en el servidor.")
 
 
 @routerTransaccion.post("/procesar_pagos")
 def procesar_pagos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+    """
+    Procesa los pagos pendientes de la tarjeta autenticada (cobros y facturación).
+    Auth: requerida (token de tarjeta).
+    """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
 
@@ -142,15 +150,19 @@ def procesar_pagos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depen
 
 @routerTransaccion.get("/saldo_pendiente")
 def saldo_pendiente(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+    """
+    Calcula el monto total de transacciones fallidas pendientes de recarga en la tarjeta.
+    Auth: requerida (token de tarjeta).
+    """
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
 
-    transacciones_pendientes = db.query(Transaccion).filter(
+    transacciones_fallidas = db.query(Transaccion).filter(
         Transaccion.id_tarjeta == datos_tarjeta.get("id_tarjeta"),
         Transaccion.id_estado == EstadoTransaccion.FALLIDO,
     ).all()
 
-    monto_pendiente = sum([transaccion.monto for transaccion in transacciones_pendientes])
+    monto_pendiente = sum([transaccion_fallida.monto for transaccion_fallida in transacciones_fallidas])
 
     return {
         "estado": 1,

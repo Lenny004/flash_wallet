@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Flash</title>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+    <link type="text/css" rel="stylesheet" href="/css/fuente.css">
+    <link rel="icon" type="icon/png" href="/resources/imgs/Flash_logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body>
+    <header id="header">
+        
+    </header>
+    <main class="dashboard">
+        <div class="encabezado">
+            <h1 class="titulo">Pago de servicio</h1>
+        </div>
+        <a href="historial_pago.html" class="subrayar"><b>Ver historial de pago</b></a>
+        <div id="tarjetas_pago">
+            
+        </div>
+    </main>
+    <nav>
+        <div class="navbar">
+            <a href="dashboard.html" class="btn primary-button">
+                <img src="/resources/icons/home.png" alt="home">
+            </a>
+            <a href="pago.html" class="btn primary-button">
+                <img src="/resources/icons/billete.png" alt="Pagar">
+            </a>
+            <a href="escanear_servicio.html" class="btn primary-button">
+                <img src="/resources/icons/scanner.png" alt="Escanear">
+            </a>
+            <a href="recarga.html" class="btn primary-button">
+                <img src="/resources/icons/recharge.png" alt="Recargar">
+            </a>
+        </div>
+    </nav>
+    <script type="text/javascript" src="/controllers/config.js"></script>
+    <script type="text/javascript" src="/controllers/auth.js"></script>
+    <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="/controllers/componentes.js"></script>
+    <script type="text/javascript" src="/controllers/online.js"></script>
+    <script type="module" src="/src/pages/pago.ts"></script>
+</body>
+
+</html>

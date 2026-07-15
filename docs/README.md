@@ -17,6 +17,7 @@ contenedorizado y publicable en GitHub, sin reescribir todo de golpe.
 | [STACK.md](STACK.md) | Tecnologías actuales, stack objetivo 2025-2026 y justificación |
 | [BASE_DATOS.md](BASE_DATOS.md) | Modelo entidad-relación, fixes de SQL, migraciones con Alembic |
 | [SEGURIDAD.md](SEGURIDAD.md) | Checklist de riesgos críticos y remediaciones priorizadas |
+| [DEPLOY_READYNESS.md](DEPLOY_READYNESS.md) | Auditoría de readiness para despliegue (staging/prod) |
 | [DOCKER.md](DOCKER.md) | Contenedorización, docker-compose, variables de entorno |
 | [GITHUB.md](GITHUB.md) | Nombre, descripción, topics, licencia, CI y publicación del repo |
 | [ROADMAP.md](ROADMAP.md) | Fases 0-5 de migración con criterios de done |

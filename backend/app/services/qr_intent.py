@@ -1,3 +1,5 @@
+"""Creación y verificación de intents QR firmados con HMAC."""
+
 import hashlib
 import hmac
 import time
@@ -7,11 +9,18 @@ from fastapi import HTTPException
 from app.core.config import settings
 
 
-def _canonical_string(id_servicio: int, monto: float, frecuencia: int, descripcion: str, exp: int) -> str:
+# --- Firma y canonicalización ---
+
+
+def _canonical_string(
+    id_servicio: int, monto: float, frecuencia: int, descripcion: str, exp: int
+) -> str:
+    """Serializa los campos del intent en un formato determinista."""
     return f"{id_servicio}|{monto}|{frecuencia}|{descripcion}|{exp}"
 
 
 def _firmar(canonical: str) -> str:
+    """Calcula la firma HMAC-SHA256 del string canónico."""
     return hmac.new(
         settings.secret_key.encode("utf-8"),
         canonical.encode("utf-8"),
@@ -19,7 +28,19 @@ def _firmar(canonical: str) -> str:
     ).hexdigest()
 
 
+# --- API pública ---
+
+
 def crear_intent(payload: dict) -> dict:
+    """Genera un intent QR con expiración y firma HMAC.
+
+    Args:
+        payload: Datos del servicio (``id_servicio``, ``monto``, ``frecuencia``,
+            ``descripcion``).
+
+    Returns:
+        Payload original más ``exp`` y ``sig``.
+    """
     exp = int(time.time()) + settings.qr_intent_ttl_seconds
     canonical = _canonical_string(
         payload["id_servicio"],
@@ -36,6 +57,17 @@ def crear_intent(payload: dict) -> dict:
 
 
 def verificar_intent(data: dict) -> dict:
+    """Valida campos, expiración y firma de un intent QR.
+
+    Args:
+        data: Intent recibido del cliente (incluye ``sig`` y ``exp``).
+
+    Returns:
+        Intent normalizado con tipos primitivos.
+
+    Raises:
+        HTTPException: 400 si falta un campo, expiró o la firma no coincide.
+    """
     required = ("id_servicio", "monto", "frecuencia", "descripcion", "exp", "sig")
     for field in required:
         if field not in data or data[field] is None:
@@ -52,8 +84,8 @@ def verificar_intent(data: dict) -> dict:
         str(data["descripcion"]),
         exp,
     )
-    expected_sig = _firmar(canonical)
-    if not hmac.compare_digest(str(data["sig"]), expected_sig):
+    firma_esperada = _firmar(canonical)
+    if not hmac.compare_digest(str(data["sig"]), firma_esperada):
         raise HTTPException(status_code=400, detail="Intent inválido: firma incorrecta")
 
     return {

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Flash</title>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+    <link type="text/css" rel="stylesheet" href="/css/fuente.css">
+    <link rel="icon" type="icon/png" href="/resources/imgs/Flash_logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body>
+    <header id="header">
+        
+    </header>
+    <main class="dashboard">
+        <div class="encabezado">
+            <h1 class="titulo">+Agregar Servicio</h1>
+        </div>
+        <div class="qr">
+            <p><b>Agregue una imagen del QR perteneciente al servicio a agregar</b></p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="mostrarImagen(event)">
+            <input type="button" value="Agregar imagen" class="btn primary-button" onclick="document.getElementById('fileInput').click()">
+            <img id="qrImage" src="/resources/imgs/qr.jpg" alt="qr" class="invisible">
+        </div>
+        <div id="info_servicio">
+            
+        </div>
+        <div class="two-columns">
+            <form id="factura_form" action="post">
+                <input type="text" class="input invisible" id="fecha_transaccion" name="fecha_transaccion" required>
+                <input type="time" class="input invisible" id="hora_transaccion" name="hora_transaccion" step="1" required>
+                <input type="number" class="input invisible" id="monto" name="monto" step="0.01" required>
+                <input type="number" class="input invisible" id="frecuencia" name="frecuencia" required>
+                <input type="text" class="input invisible" id="descripcion" name="descripcion" maxlength="40" required>
+                <input type="number" class="input invisible" id="id_servicio" name="id_servicio" required>
+                <input type="number" class="input invisible" id="id_estado" name="id_estado" required>
+                <div class="two-columns">
+                    <input type="button" value="Cancelar" class="btn primary-button" onclick="vaciarCampos()">
+                    <input type="submit" value="Aceptar Servicio" class="btn primary-button">
+                </div>
+            </form>
+        </div>
+    </main>
+    <nav>
+        <div class="navbar">
+            <a href="dashboard.html" class="btn primary-button">
+                <img src="/resources/icons/home.png" alt="home">
+            </a>
+            <a href="pago.html" class="btn primary-button">
+                <img src="/resources/icons/billete.png" alt="Pagar">
+            </a>
+            <a href="escanear_servicio.html" class="btn primary-button">
+                <img src="/resources/icons/scanner.png" alt="Escanear">
+            </a>
+            <a href="recarga.html" class="btn primary-button">
+                <img src="/resources/icons/recharge.png" alt="Recargar">
+            </a>
+        </div>
+    </nav>
+    <script type="text/javascript" src="/controllers/config.js"></script>
+    <script type="text/javascript" src="/controllers/auth.js"></script>
+    <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="/controllers/componentes.js"></script>
+    <script type="text/javascript" src="/controllers/online.js"></script>
+    <script type="module" src="/src/pages/escanear_servicio.ts"></script>
+</body>
+
+</html>

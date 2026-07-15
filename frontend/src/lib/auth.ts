@@ -1,62 +1,79 @@
+/**
+ * @file Utilidades de autenticación: URL base, renovación de tokens y fetch autenticado.
+ */
+
+/** Tipo de token JWT a usar en peticiones autenticadas. */
 export type AuthType = 'tarjeta' | 'usuario';
 
-/** Base URL de la API: `FLASH_API_BASE` (legacy) o `VITE_API_URL` (módulos ES). */
+/**
+ * Obtiene la URL base de la API.
+ * Prioriza `FLASH_API_BASE` en `window` (legacy) y luego `VITE_API_URL`.
+ * @returns URL base de la API, o cadena vacía si no está configurada.
+ */
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
-    const legacy = (window as Window & { FLASH_API_BASE?: string }).FLASH_API_BASE;
-    if (legacy !== undefined) {
-      return legacy || '';
+    const baseUrlLegacy = (window as Window & { FLASH_API_BASE?: string }).FLASH_API_BASE;
+    if (baseUrlLegacy !== undefined) {
+      return baseUrlLegacy || '';
     }
   }
   return import.meta.env.VITE_API_URL ?? '';
 }
 
+/**
+ * Renueva los tokens de acceso usando el refresh token almacenado en localStorage.
+ * @returns `true` si el refresh fue exitoso y se guardaron nuevos tokens; `false` en caso contrario.
+ */
 export async function refreshAccessTokens(): Promise<boolean> {
-  const refresh = localStorage.getItem('refresh_token');
-  if (!refresh) return false;
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return false;
 
-  const base = getApiBase();
-  const res = await fetch(`${base}/api/usuarios/refresh`, {
+  const urlBaseApi = getApiBase();
+  const respuesta = await fetch(`${urlBaseApi}/api/usuarios/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh_token: refresh }),
+    body: JSON.stringify({ refresh_token: refreshToken }),
   });
-  if (!res.ok) return false;
+  if (!respuesta.ok) return false;
 
-  const data = (await res.json()) as {
+  const datosTokens = (await respuesta.json()) as {
     token_usuario?: string;
     token_tarjeta?: string;
   };
-  if (data.token_usuario) localStorage.setItem('token_usuario', data.token_usuario);
-  if (data.token_tarjeta) localStorage.setItem('token_tarjeta', data.token_tarjeta);
+  if (datosTokens.token_usuario) localStorage.setItem('token_usuario', datosTokens.token_usuario);
+  if (datosTokens.token_tarjeta) localStorage.setItem('token_tarjeta', datosTokens.token_tarjeta);
   return true;
 }
 
 /**
- * Fetch autenticado compatible con `public/controllers/auth.js`.
- * Recibe la URL completa (no solo el path) y reintenta tras refresh en 401.
+ * Realiza una petición HTTP autenticada con reintento automático tras respuesta 401.
+ * Compatible con `public/controllers/auth.js`.
+ * @param url - URL completa del endpoint (no solo el path relativo).
+ * @param options - Opciones estándar de `fetch`.
+ * @param authType - Tipo de token: `'tarjeta'` (predeterminado) o `'usuario'`.
+ * @returns Respuesta HTTP de `fetch`.
  */
 export async function apiFetchAuth(
   url: string,
   options: RequestInit = {},
   authType: AuthType = 'tarjeta',
 ): Promise<Response> {
-  const key = authType === 'usuario' ? 'token_usuario' : 'token_tarjeta';
-  const headers = new Headers(options.headers);
-  headers.set('Authorization', `Bearer ${localStorage.getItem(key) || ''}`);
+  const claveToken = authType === 'usuario' ? 'token_usuario' : 'token_tarjeta';
+  const encabezados = new Headers(options.headers);
+  encabezados.set('Authorization', `Bearer ${localStorage.getItem(claveToken) || ''}`);
 
-  let res = await fetch(url, { ...options, headers });
+  let respuesta = await fetch(url, { ...options, headers: encabezados });
 
-  if (res.status === 401) {
-    const ok = await refreshAccessTokens();
-    if (!ok) {
+  if (respuesta.status === 401) {
+    const refreshExitoso = await refreshAccessTokens();
+    if (!refreshExitoso) {
       localStorage.clear();
       window.location.href = 'login.html';
-      return res;
+      return respuesta;
     }
-    headers.set('Authorization', `Bearer ${localStorage.getItem(key) || ''}`);
-    res = await fetch(url, { ...options, headers });
+    encabezados.set('Authorization', `Bearer ${localStorage.getItem(claveToken) || ''}`);
+    respuesta = await fetch(url, { ...options, headers: encabezados });
   }
 
-  return res;
+  return respuesta;
 }

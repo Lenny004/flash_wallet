@@ -1,3 +1,4 @@
+/** Invalida el refresh token en el servidor (sin esperar respuesta). */
 function revokeRefreshToken() {
   const refresh = localStorage.getItem('refresh_token');
   if (!refresh) return;
@@ -9,6 +10,10 @@ function revokeRefreshToken() {
   }).catch(() => {});
 }
 
+/**
+ * Renueva token_usuario y token_tarjeta con el refresh_token guardado.
+ * @returns {Promise<boolean>} true si el refresh fue exitoso
+ */
 async function refreshAccessTokens() {
   const refresh = localStorage.getItem('refresh_token');
   if (!refresh) return false;
@@ -25,8 +30,14 @@ async function refreshAccessTokens() {
   return true;
 }
 
+/**
+ * fetch autenticado; reintenta tras renovar tokens si recibe 401.
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @param {'tarjeta'|'usuario'} [authType]
+ * @returns {Promise<Response>}
+ */
 async function apiFetchAuth(url, options = {}, authType = 'tarjeta') {
-  // authType: 'tarjeta' | 'usuario'
   const key = authType === 'usuario' ? 'token_usuario' : 'token_tarjeta';
   options.headers = options.headers || {};
   options.headers['Authorization'] = `Bearer ${localStorage.getItem(key) || ''}`;

@@ -1,3 +1,5 @@
+"""Enumeraciones compartidas de dominio."""
+
 from enum import IntEnum
 
 

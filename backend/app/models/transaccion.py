@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Transaccion(Base):
+    """Transacción de pago de un servicio con una tarjeta (tabla tbtransaccion)."""
+
     __tablename__ = "tbtransaccion"
 
     id_transaccion = Column(Integer, primary_key=True, autoincrement=True, index=True)

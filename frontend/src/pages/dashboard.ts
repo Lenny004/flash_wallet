@@ -1,53 +1,64 @@
+/**
+ * @file Panel principal (dashboard): historial de recargas, movimientos, datos de tarjeta y búsqueda.
+ */
+
 import { apiFetchAuth, getApiBase } from '../lib/auth';
 
 declare const Swal: {
   fire: (options: Record<string, unknown>) => Promise<{ isConfirmed?: boolean }>;
 };
 
-const API_HISTORIAL = `${getApiBase()}/api/historial/`;
-const API_TARJETA = `${getApiBase()}/api/tarjeta/`;
-const API_MOVIMIENTOS = `${getApiBase()}/api/historial/movimientos`;
+const urlApiHistorial = `${getApiBase()}/api/historial/`;
+const urlApiTarjeta = `${getApiBase()}/api/tarjeta/`;
+const urlApiMovimientos = `${getApiBase()}/api/historial/movimientos`;
 
-type AlertType = 1 | 2 | 3 | 4 | 5;
+/** Códigos de tipo de alerta SweetAlert usados en la página. */
+type TipoAlerta = 1 | 2 | 3 | 4 | 5;
 
-function sweetAlert(type: AlertType, text: string, url?: string | null): void {
-  let title: string;
-  let icon: string;
-  switch (type) {
+/**
+ * Muestra una alerta SweetAlert según el tipo indicado.
+ * @param tipoAlerta - 1 éxito, 2 error, 3 advertencia, 4 aviso, 5 campos vacíos.
+ * @param texto - Mensaje a mostrar al usuario.
+ * @param urlRedireccion - URL opcional; si se indica, redirige al confirmar.
+ */
+function mostrarAlerta(tipoAlerta: TipoAlerta, texto: string, urlRedireccion?: string | null): void {
+  let titulo: string;
+  let icono: string;
+  switch (tipoAlerta) {
     case 1:
-      title = 'Éxito';
-      icon = 'success';
+      titulo = 'Éxito';
+      icono = 'success';
       break;
     case 2:
-      title = 'Error';
-      icon = 'error';
+      titulo = 'Error';
+      icono = 'error';
       break;
     case 3:
-      title = 'Advertencia';
-      icon = 'warning';
+      titulo = 'Advertencia';
+      icono = 'warning';
       break;
     case 4:
-      title = 'Aviso';
-      icon = 'info';
+      titulo = 'Aviso';
+      icono = 'info';
       break;
     case 5:
-      title = 'Campos Vacios';
-      icon = 'warning';
+      titulo = 'Campos Vacios';
+      icono = 'warning';
       break;
   }
 
-  if (url) {
+  if (urlRedireccion) {
     Swal.fire({
-      title,
-      text,
-      icon,
+      title: titulo,
+      text: texto,
+      icon: icono,
       confirmButtonText: 'Aceptar',
       allowOutsideClick: false,
       allowEscapeKey: false,
       allowEnterKey: true,
       stopKeydownPropagation: false,
     }).then(() => {
-      location.href = url;
+      location.href = urlRedireccion;
     });
   } else {
     Swal.fire({
@@ -55,9 +66,9 @@ function sweetAlert(type: AlertType, text: string, url?: string | null): void {
       position: 'bottom-end',
       timer: 5000,
       timerProgressBar: true,
-      title,
-      text,
-      icon,
+      title: titulo,
+      text: texto,
+      icon: icono,
       color: '#9e2d2d',
       background: '#fffff',
       customClass: {
@@ -69,14 +80,16 @@ function sweetAlert(type: AlertType, text: string, url?: string | null): void {
   }
 }
 
-interface HistorialRow {
+/** Fila del historial de recargas. */
+interface FilaHistorial {
   id_historial: number;
   monto_agregado: number | string;
   fecha_historial: string;
   hora_historial: string;
 }
 
-interface MovimientoRow {
+/** Fila del historial de movimientos de la tarjeta. */
+interface FilaMovimiento {
   creado_en: string;
   tipo: string;
   monto: number | string;
@@ -85,20 +98,23 @@ interface MovimientoRow {
   referencia?: string;
 }
 
-interface HistorialResponse {
+/** Respuesta de la API al consultar el historial de recargas. */
+interface RespuestaHistorial {
   estado?: number;
-  dataset?: HistorialRow[];
+  dataset?: FilaHistorial[];
   exception?: string;
   mensaje?: string;
 }
 
-interface MovimientosResponse {
+/** Respuesta de la API al consultar movimientos. */
+interface RespuestaMovimientos {
   estado?: number;
-  dataset?: MovimientoRow[];
+  dataset?: FilaMovimiento[];
   exception?: string;
 }
 
-interface TarjetaResponse {
+/** Respuesta de la API con datos de la tarjeta. */
+interface RespuestaTarjeta {
   estado?: boolean;
   pan?: string;
   fecha_creacion?: string;
@@ -109,101 +125,116 @@ interface TarjetaResponse {
   detail?: string;
 }
 
-interface DeleteResponse {
+/** Respuesta de la API al eliminar un registro del historial. */
+interface RespuestaEliminar {
   estado?: boolean;
   message?: string;
   exception?: string;
 }
 
-function readRows(api: string): void {
+/**
+ * Carga filas del historial de recargas desde la API y las muestra en la tabla.
+ * @param urlApi - URL completa del endpoint de lectura o búsqueda.
+ */
+function cargarHistorial(urlApi: string): void {
   if (!localStorage.getItem('token_tarjeta')) {
-    sweetAlert(3, 'No hay datos de la tarjeta. Error', null);
+    mostrarAlerta(3, 'No hay datos de la tarjeta. Error', null);
     return;
   }
-  apiFetchAuth(api, {
+  apiFetchAuth(urlApi, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
-    .then((request) => {
-      if (request.ok) {
-        request.json().then((response: HistorialResponse) => {
-          if (response.estado === 1) {
-            fillTable(response.dataset ?? []);
+    .then((respuestaApi) => {
+      if (respuestaApi.ok) {
+        respuestaApi.json().then((datos: RespuestaHistorial) => {
+          if (datos.estado === 1) {
+            renderizarTablaHistorial(datos.dataset ?? []);
           }
         });
       } else {
-        sweetAlert(2, request.statusText);
+        mostrarAlerta(2, respuestaApi.statusText);
       }
     })
     .catch((error: unknown) => {
-      sweetAlert(4, 'Hubo un problema con la solicitud.', null);
+      mostrarAlerta(4, 'Hubo un problema con la solicitud.', null);
       console.log('Error:', error);
     });
 }
 
-function fillTable(dataset: HistorialRow[]): void {
-  const content: string[] = [];
-  dataset.forEach((row) => {
-    content.push(`
+/**
+ * Renderiza las filas del historial de recargas en `#tbhistorial`.
+ * @param registros - Lista de filas devueltas por la API.
+ */
+function renderizarTablaHistorial(registros: FilaHistorial[]): void {
+  const filasHtml: string[] = [];
+  registros.forEach((fila) => {
+    filasHtml.push(`
             <tr>
-                <td>$${row.monto_agregado}</td>
-                <td>${row.fecha_historial}</td>
-                <td>${row.hora_historial}</td>
+                <td>$${fila.monto_agregado}</td>
+                <td>${fila.fecha_historial}</td>
+                <td>${fila.hora_historial}</td>
                 <td>
-                    <img onclick="openDelete(${row.id_historial})" src="/resources/icons/delete.png" alt="eliminar">
+                    <img onclick="openDelete(${fila.id_historial})" src="/resources/icons/delete.png" alt="eliminar">
                 </td>
             </tr>
         `);
   });
-  const tbody = document.getElementById('tbhistorial');
-  if (tbody) {
-    tbody.innerHTML = content.join('');
+  const cuerpoTabla = document.getElementById('tbhistorial');
+  if (cuerpoTabla) {
+    cuerpoTabla.innerHTML = filasHtml.join('');
   }
 }
 
-function loadMovimientos(): void {
-  const aviso = document.getElementById('movimientos-aviso');
-  const tbody = document.getElementById('tbmovimientos');
+/** Carga y muestra el historial de movimientos de la tarjeta. */
+function cargarMovimientos(): void {
+  const avisoMovimientos = document.getElementById('movimientos-aviso');
+  const cuerpoTabla = document.getElementById('tbmovimientos');
   if (!localStorage.getItem('token_tarjeta')) {
-    if (aviso) {
-      aviso.hidden = false;
-      aviso.textContent = 'No se pudieron cargar los movimientos.';
+    if (avisoMovimientos) {
+      avisoMovimientos.hidden = false;
+      avisoMovimientos.textContent = 'No se pudieron cargar los movimientos.';
     }
     return;
   }
-  apiFetchAuth(API_MOVIMIENTOS, {
+  apiFetchAuth(urlApiMovimientos, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
-    .then((request) => {
-      if (request.ok) {
-        return request.json();
+    .then((respuestaApi) => {
+      if (respuestaApi.ok) {
+        return respuestaApi.json();
       }
-      throw new Error(request.statusText);
+      throw new Error(respuestaApi.statusText);
     })
-    .then((response: MovimientosResponse) => {
-      if (response.estado === 1) {
-        fillMovimientosTable(response.dataset ?? []);
+    .then((datos: RespuestaMovimientos) => {
+      if (datos.estado === 1) {
+        renderizarTablaMovimientos(datos.dataset ?? []);
       } else {
-        throw new Error(response.exception || 'No se pudieron cargar los movimientos.');
+        throw new Error(datos.exception || 'No se pudieron cargar los movimientos.');
       }
     })
     .catch((error: unknown) => {
       console.log('Movimientos:', error);
-      if (aviso) {
-        aviso.hidden = false;
-        aviso.textContent = 'No se pudieron cargar los movimientos.';
+      if (avisoMovimientos) {
+        avisoMovimientos.hidden = false;
+        avisoMovimientos.textContent = 'No se pudieron cargar los movimientos.';
       }
-      if (tbody) {
-        tbody.innerHTML = '';
+      if (cuerpoTabla) {
+        cuerpoTabla.innerHTML = '';
       }
     });
 }
 
-function formatFechaMovimiento(creadoEn: string): string {
-  const fecha = new Date(creadoEn);
+/**
+ * Formatea la fecha/hora de un movimiento para mostrar en la tabla.
+ * @param fechaCreacion - Timestamp ISO devuelto por la API.
+ * @returns Cadena formateada en locale `es-MX` o el valor original si no es válida.
+ */
+function formatearFechaMovimiento(fechaCreacion: string): string {
+  const fecha = new Date(fechaCreacion);
   if (isNaN(fecha.getTime())) {
-    return creadoEn || '-';
+    return fechaCreacion || '-';
   }
   return fecha.toLocaleString('es-MX', {
     year: 'numeric',
@@ -214,77 +245,87 @@ function formatFechaMovimiento(creadoEn: string): string {
   });
 }
 
-function formatMontoMovimiento(valor: number | string): string {
+/**
+ * Formatea un monto numérico como moneda con dos decimales.
+ * @param valor - Monto devuelto por la API.
+ * @returns Cadena con prefijo `$` y dos decimales.
+ */
+function formatearMonto(valor: number | string): string {
   return '$' + parseFloat(String(valor)).toFixed(2);
 }
 
-function fillMovimientosTable(dataset: MovimientoRow[]): void {
-  const tbody = document.getElementById('tbmovimientos');
-  if (!tbody) {
+/**
+ * Renderiza las filas de movimientos en `#tbmovimientos`.
+ * @param registros - Lista de movimientos devueltos por la API.
+ */
+function renderizarTablaMovimientos(registros: FilaMovimiento[]): void {
+  const cuerpoTabla = document.getElementById('tbmovimientos');
+  if (!cuerpoTabla) {
     return;
   }
-  if (!dataset || dataset.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6">No hay movimientos registrados.</td></tr>';
+  if (!registros || registros.length === 0) {
+    cuerpoTabla.innerHTML = '<tr><td colspan="6">No hay movimientos registrados.</td></tr>';
     return;
   }
-  const content: string[] = [];
-  dataset.forEach((row) => {
-    content.push(`
+  const filasHtml: string[] = [];
+  registros.forEach((fila) => {
+    filasHtml.push(`
             <tr>
-                <td>${formatFechaMovimiento(row.creado_en)}</td>
-                <td>${row.tipo}</td>
-                <td>${formatMontoMovimiento(row.monto)}</td>
-                <td>${formatMontoMovimiento(row.saldo_anterior)}</td>
-                <td>${formatMontoMovimiento(row.saldo_nuevo)}</td>
-                <td>${row.referencia || '-'}</td>
+                <td>${formatearFechaMovimiento(fila.creado_en)}</td>
+                <td>${fila.tipo}</td>
+                <td>${formatearMonto(fila.monto)}</td>
+                <td>${formatearMonto(fila.saldo_anterior)}</td>
+                <td>${formatearMonto(fila.saldo_nuevo)}</td>
+                <td>${fila.referencia || '-'}</td>
             </tr>
         `);
   });
-  tbody.innerHTML = content.join('');
+  cuerpoTabla.innerHTML = filasHtml.join('');
 }
 
-function datosTarjeta(): void {
+/** Obtiene y muestra los datos de la tarjeta y el saldo del wallet. */
+function cargarDatosTarjeta(): void {
   if (!localStorage.getItem('token_tarjeta')) {
-    sweetAlert(3, 'No hay datos de la tarjeta. Error', null);
+    mostrarAlerta(3, 'No hay datos de la tarjeta. Error', null);
     return;
   }
-  apiFetchAuth(`${API_TARJETA}readOne`, {
+  apiFetchAuth(`${urlApiTarjeta}readOne`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
-    .then((request) => {
-      if (request.ok) {
-        return request.json();
+    .then((respuestaApi) => {
+      if (respuestaApi.ok) {
+        return respuestaApi.json();
       }
-      return request.json().then((error: { detail?: string }) => {
-        console.error('Error en la solicitud:', error);
-        throw new Error(error.detail || 'Error al cargar los datos.');
+      return respuestaApi.json().then((errorDatos: { detail?: string }) => {
+        console.error('Error en la solicitud:', errorDatos);
+        throw new Error(errorDatos.detail || 'Error al cargar los datos.');
       });
     })
-    .then((response: TarjetaResponse) => {
-      if (response.estado) {
-        const content = `
-                <p><b>${response.pan}</b></p>
-                <p><b>DESDE: ${response.fecha_creacion}</b></p>
-                <p><b>CVC: ${response.cvc}</b></p>
-                <p><b>${response.nombre}</b></p>`;
-        const datosTarjetaEl = document.getElementById('datos_tarjeta');
-        if (datosTarjetaEl) {
-          datosTarjetaEl.innerHTML = content;
+    .then((datos: RespuestaTarjeta) => {
+      if (datos.estado) {
+        const htmlDatosTarjeta = `
+                <p><b>${datos.pan}</b></p>
+                <p><b>DESDE: ${datos.fecha_creacion}</b></p>
+                <p><b>CVC: ${datos.cvc}</b></p>
+                <p><b>${datos.nombre}</b></p>`;
+        const contenedorTarjeta = document.getElementById('datos_tarjeta');
+        if (contenedorTarjeta) {
+          contenedorTarjeta.innerHTML = htmlDatosTarjeta;
         }
-        const content2 = `<p>Saldo en tu wallet</p>
-            <p>$${parseFloat(String(response.balance)).toFixed(2)}</p>`;
-        const datoBalanceEl = document.getElementById('dato_balance');
-        if (datoBalanceEl) {
-          datoBalanceEl.innerHTML = content2;
+        const htmlSaldo = `<p>Saldo en tu wallet</p>
+            <p>$${parseFloat(String(datos.balance)).toFixed(2)}</p>`;
+        const contenedorSaldo = document.getElementById('dato_balance');
+        if (contenedorSaldo) {
+          contenedorSaldo.innerHTML = htmlSaldo;
         }
       } else {
-        sweetAlert(3, response.exception || 'Ocurrió un error.', null);
+        mostrarAlerta(3, datos.exception || 'Ocurrió un error.', null);
       }
     })
     .catch((error: Error) => {
       console.error('Error:', error.message);
-      sweetAlert(3, error.message, 'login.html');
+      mostrarAlerta(3, error.message, 'login.html');
     });
 }
 
@@ -294,8 +335,11 @@ declare global {
   }
 }
 
-function openDelete(id: number): void {
-  const id_historial = id;
+/**
+ * Solicita confirmación y elimina un registro del historial por su ID.
+ * @param idHistorial - Identificador del registro a eliminar.
+ */
+function openDelete(idHistorial: number): void {
   Swal.fire({
     title: 'Advertencia',
     text: '¿Desea eliminar el registro?',
@@ -309,25 +353,25 @@ function openDelete(id: number): void {
     allowEscapeKey: false,
     allowEnterKey: true,
     stopKeydownPropagation: false,
-  }).then((result) => {
-    if (result.isConfirmed) {
-      apiFetchAuth(`${API_HISTORIAL}delete`, {
+  }).then((resultado) => {
+    if (resultado.isConfirmed) {
+      apiFetchAuth(`${urlApiHistorial}delete`, {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_historial }),
-      }).then((request) => {
-        if (request.ok) {
-          request.json().then((response: DeleteResponse) => {
-            if (response.estado) {
-              readRows(`${API_HISTORIAL}read`);
-              sweetAlert(1, response.message || 'Registro eliminado.', null);
+        body: JSON.stringify({ id_historial: idHistorial }),
+      }).then((respuestaApi) => {
+        if (respuestaApi.ok) {
+          respuestaApi.json().then((datos: RespuestaEliminar) => {
+            if (datos.estado) {
+              cargarHistorial(`${urlApiHistorial}read`);
+              mostrarAlerta(1, datos.message || 'Registro eliminado.', null);
             } else {
-              readRows(`${API_HISTORIAL}read`);
-              sweetAlert(2, response.exception || 'Error al eliminar.', null);
+              cargarHistorial(`${urlApiHistorial}read`);
+              mostrarAlerta(2, datos.exception || 'Error al eliminar.', null);
             }
           });
         } else {
-          console.log(`${request.status} ${request.statusText}`);
+          console.log(`${respuestaApi.status} ${respuestaApi.statusText}`);
         }
       });
     }
@@ -337,40 +381,40 @@ function openDelete(id: number): void {
 window.openDelete = openDelete;
 
 document.addEventListener('DOMContentLoaded', () => {
-  readRows(`${API_HISTORIAL}read`);
-  datosTarjeta();
-  loadMovimientos();
+  cargarHistorial(`${urlApiHistorial}read`);
+  cargarDatosTarjeta();
+  cargarMovimientos();
 });
 
-const buscadorForm = document.getElementById('buscador-form');
-buscadorForm?.addEventListener('submit', (event) => {
-  event.preventDefault();
+const formularioBuscador = document.getElementById('buscador-form');
+formularioBuscador?.addEventListener('submit', (evento) => {
+  evento.preventDefault();
   const monto_agregado = (document.getElementById('buscar') as HTMLInputElement).value;
-  apiFetchAuth(`${API_HISTORIAL}buscar`, {
+  apiFetchAuth(`${urlApiHistorial}buscar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ monto_agregado }),
   })
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
+    .then((respuestaApi) => {
+      if (respuestaApi.ok) {
+        return respuestaApi.json();
       }
-      return response.json().then((errorData: { detail?: string }) => {
-        throw new Error(errorData.detail || 'Error desconocido');
+      return respuestaApi.json().then((errorDatos: { detail?: string }) => {
+        throw new Error(errorDatos.detail || 'Error desconocido');
       });
     })
-    .then((data: HistorialResponse) => {
-      if (data.estado) {
-        fillTable(data.dataset ?? []);
-        sweetAlert(1, data.mensaje || 'Búsqueda exitosa.', null);
+    .then((datos: RespuestaHistorial) => {
+      if (datos.estado) {
+        renderizarTablaHistorial(datos.dataset ?? []);
+        mostrarAlerta(1, datos.mensaje || 'Búsqueda exitosa.', null);
       } else {
-        sweetAlert(4, data.exception || 'No hay resultados', null);
-        readRows(`${API_HISTORIAL}read`);
+        mostrarAlerta(4, datos.exception || 'No hay resultados', null);
+        cargarHistorial(`${urlApiHistorial}read`);
       }
     })
     .catch((error: Error) => {
-      sweetAlert(4, error.message, null);
+      mostrarAlerta(4, error.message, null);
       console.log(error);
-      readRows(`${API_HISTORIAL}read`);
+      cargarHistorial(`${urlApiHistorial}read`);
     });
 });

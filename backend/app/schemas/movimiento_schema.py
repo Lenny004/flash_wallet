@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 
 
 class TablaMovimiento(BaseModel):
+    """Movimiento de saldo de una tarjeta digital."""
+
     id_movimiento: int = Field(..., ge=1)
     id_tarjeta: int = Field(..., ge=1)
     tipo: str
