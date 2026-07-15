@@ -9,6 +9,7 @@ from app.api.routes.factura import routerFactura
 from app.api.routes.historial import routerHistorial
 from app.api.routes.internal import routerInternal
 from app.api.routes.qr import routerQR
+from app.api.routes.servicios import routerServicios
 from app.api.routes.tarjeta import routerTarjeta
 from app.api.routes.transaccion import routerTransaccion
 from app.api.routes.usuarios import routerUsuario
@@ -67,6 +68,7 @@ app.include_router(routerTarjeta, prefix="/api/tarjeta", tags=["Tarjeta"])
 app.include_router(routerQR, prefix="/api/decode_qr", tags=["QR"])
 app.include_router(routerTransaccion, prefix="/api/transaccion", tags=["Transaccion"])
 app.include_router(routerFactura, prefix="/api/factura", tags=["Factura"])
+app.include_router(routerServicios, prefix="/api/servicios", tags=["Servicios"])
 app.include_router(routerInternal, prefix="/api/internal", tags=["Internal"])
 
 if __name__ == "__main__":
