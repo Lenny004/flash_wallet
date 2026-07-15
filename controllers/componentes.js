@@ -185,6 +185,7 @@ function logOut() {
             // Eliminar los tokens almacenados en el navegador
             localStorage.removeItem('token_usuario');
             localStorage.removeItem('token_tarjeta');
+            localStorage.removeItem('refresh_token');
 
             // Mostrar mensaje de confirmación y redirigir al usuario
             sweetAlert(1, 'Sesión cerrada correctamente', 'login.html');

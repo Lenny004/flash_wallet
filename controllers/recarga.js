@@ -8,34 +8,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.getElementById('recarga_form').addEventListener('submit', function (event) {
     event.preventDefault();
-    const token_tarjeta = localStorage.getItem('token_tarjeta');  // Obtener el token almacenado
-    if (!token_tarjeta) {
-        // Si no hay token, redirige al login
+    if (!localStorage.getItem('token_tarjeta')) {
         sweetAlert(3, "No hay datos de la tarjeta. Error", null);
         return;
     }
-    fetch(API_HISTORIAL + 'recargar', {
+    apiFetchAuth(API_HISTORIAL + 'recargar', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token_tarjeta}`
-        },
-        body: JSON.stringify(Object.fromEntries(new FormData(event.target))) // Enviamos los datos del formulario como JSON
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(event.target)))
     })
     .then((response) => {
         if (response.ok) {
-            return response.json(); // Si la respuesta es exitosa, parsea el JSON
+            return response.json();
         } else {
-            // Si no la respuesta no es exitosa, lanza un error
             return response.json().then((errorData) => {
                 throw new Error(errorData.detail || 'Error desconocido');
             });
         }
     })
     .then((data) => {
-        if (data.estado) { // Aquí se usa "response" correctamente
-            sweetAlert(1, data.mensaje, null); // Mostramos mensaje de éxito
+        if (data.estado) {
+            sweetAlert(1, data.mensaje, null);
         } else {
-            sweetAlert(4, data.exception || 'No hay resultados', null); // Si no hay resultados
+            sweetAlert(4, data.exception || 'No hay resultados', null);
         }
     })
     .catch((error) => {
@@ -57,25 +52,19 @@ cancelButton.addEventListener('click', function () {
 
 
 function obtenerMonto(){
-    const token_tarjeta = localStorage.getItem('token_tarjeta');  // Obtener el token almacenado
-    if (!token_tarjeta) {
-        // Si no hay token, redirige al login
+    if (!localStorage.getItem('token_tarjeta')) {
         sweetAlert(3, "No hay datos de la tarjeta. Error", null);
         return;
     }
 
-    // Función para obtener el monto pendiente
-    fetch(API_TRANSACCION + 'saldo_pendiente', {
+    apiFetchAuth(API_TRANSACCION + 'saldo_pendiente', {
         method: 'GET',
-        headers:{'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token_tarjeta}`
-        },
+        headers: { 'Content-Type': 'application/json' }
     })
     .then((response) => {
         if (response.ok) {
-            return response.json();  // Si la respuesta es exitosa, parsea el JSON
+            return response.json();
         } else {
-            // Si no la respuesta no es exitosa, lanza un error
             return response.json().then((errorData) => {
                 throw new Error(errorData.detail || 'Error desconocido al obtener saldo pendiente');
             });
@@ -83,11 +72,10 @@ function obtenerMonto(){
     })
     .then((data) => {
         if (data.estado) {
-            // Mostrar el monto pendiente en el frontend
             const montoPendiente = data.monto_pendiente;
             document.getElementById('minima').value = "Cantidad minima a recargar: $" + montoPendiente.toFixed(2);
         } else {
-            sweetAlert(4, data.mensaje || 'No se pudo obtener el saldo pendiente', null);  // En caso de error al obtener el monto pendiente
+            sweetAlert(4, data.mensaje || 'No se pudo obtener el saldo pendiente', null);
         }
     })
     .catch((error) => {

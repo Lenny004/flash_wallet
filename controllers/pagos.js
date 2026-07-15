@@ -1,11 +1,9 @@
 const API_TRANSACCION = window.FLASH_API_BASE + '/api/transaccion/';
-const token_tarjeta = localStorage.getItem('token_tarjeta');
 
 //Evento que se ejecuta cuando se carga la página web
 document.addEventListener('DOMContentLoaded', function () {
-    const token_usuario = localStorage.getItem('token_usuario'); 
+    const token_usuario = localStorage.getItem('token_usuario');
     if (!token_usuario) {
-        // Si no hay token, redirige al login
         sweetAlert(3, "No hay sesión activa. Redirigiendo al login...", "login.html");
         return;
     }
@@ -13,17 +11,13 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function readRows(api) {
-    if (!token_tarjeta) {
-        // Si no hay token, redirige al login
+    if (!localStorage.getItem('token_tarjeta')) {
         sweetAlert(3, "No hay datos de la tarjeta.", null);
         return;
     }
-    fetch(api, {
+    apiFetchAuth(api, {
         method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token_tarjeta}`
-        }
+        headers: { 'Content-Type': 'application/json' }
     }).then(function (request) {
         if (request.ok) {
             request.json().then(function (response) {
@@ -44,7 +38,6 @@ function readRows(api) {
 // Función para llenar la tabla con los datos de los registros. Se manda a llamar en la función readRows().
 function fillTable(dataset) {
     let content = [];
-    // Se recorre el conjunto de registros (dataset)
     dataset.forEach(function (row) {
         if (row.id_estado == 1) {
             content.push(
@@ -76,6 +69,5 @@ function fillTable(dataset) {
             </div>`);
         }
     });
-    // Se agregan las filas al cuerpo de la tabla
     document.getElementById('tarjetas_pago').innerHTML = content.join('');
 }

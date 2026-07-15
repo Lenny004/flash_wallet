@@ -105,3 +105,19 @@ INSERT INTO tbservicios(nombre, img_servicio)VALUES
 ('ANDA', 'Anda.png'),
 ('AES', 'Aes.png'),
 ('DELSUR', 'Delsur.png');
+
+CREATE TABLE tbmovimiento(
+    id_movimiento INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_tarjeta INT NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    saldo_anterior DECIMAL(10,2) NOT NULL,
+    saldo_nuevo DECIMAL(10,2) NOT NULL,
+    referencia VARCHAR(80) NULL,
+    creado_en DATETIME NOT NULL
+);
+
+ALTER TABLE tbmovimiento
+ADD CONSTRAINT fk_movimiento_tarjeta
+FOREIGN KEY (id_tarjeta)
+REFERENCES tbtarjeta_digital(id_tarjeta);

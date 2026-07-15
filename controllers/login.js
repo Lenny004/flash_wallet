@@ -63,6 +63,9 @@ document.getElementById('login_form').addEventListener('submit', function (event
         if (data.token_usuario && data.token_tarjeta) {
             localStorage.setItem('token_usuario', data.token_usuario);
             localStorage.setItem('token_tarjeta', data.token_tarjeta);
+            if (data.refresh_token) {
+                localStorage.setItem('refresh_token', data.refresh_token);
+            }
             sweetAlert(1, data.mensaje, "dashboard.html");
         } else {
             sweetAlert(2, "No se recibió un token válido del servidor.");

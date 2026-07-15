@@ -19,6 +19,10 @@ class LoginRequest(BaseModel):
     contra: str = Field(..., min_length=6)
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 class UsuarioUpdate(BaseModel):
     direccion: str = Field(..., max_length=150)
     telefono: str = Field(..., max_length=15)

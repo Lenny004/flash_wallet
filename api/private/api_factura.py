@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 from helpers.database import get_db
 from helpers.tokens import verificar_token_t
-from helpers.arbol_binario import ArbolBinarioBusqueda
 from models.factura import Factura
 from schemas.factura_schema import EliminarFactura, CrearFacturaRequest, BuscarFactura
 from models.transaccion import Transaccion
@@ -12,7 +10,6 @@ import datetime
 from models.tarjeta import Tarjeta
 
 routerFactura = APIRouter()
-arbol = ArbolBinarioBusqueda()
 
 @routerFactura.get("/read")
 def obtener_facturas(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
@@ -81,8 +78,7 @@ def buscar_factura(body: BuscarFactura, datos_tarjeta=Depends(verificar_token_t)
         raise HTTPException(status_code=400, detail="No se encontró el ID de la tarjeta.")
 
     try:
-        # Realizando la consulta con SQLAlchemy
-        query = db.query(
+        resultado = db.query(
             Factura.id_factura,
             Factura.fecha_factura,
             Factura.hora_factura,
@@ -95,25 +91,20 @@ def buscar_factura(body: BuscarFactura, datos_tarjeta=Depends(verificar_token_t)
         ).join(
             Tarjeta, Transaccion.id_tarjeta == Tarjeta.id_tarjeta
         ).filter(
-            Tarjeta.id_tarjeta == idtarjeta
-        )
+            Tarjeta.id_tarjeta == idtarjeta,
+            Servicio.nombre.ilike(body.nombre),
+        ).first()
 
-        # Insertar datos al árbol binario
-        for f in query.all():
-            arbol.insertar(f.nombre_servicio, {
-                "id_factura": f.id_factura,
-                "fecha_factura": str(f.fecha_factura),
-                "hora_factura": str(f.hora_factura),
-                "monto_total": float(f.monto_total),
-                "nombre_servicio": f.nombre_servicio
-            })
-
-        # Buscar en el árbol
-        resultado = arbol.buscar(body.nombre)
         if resultado:
-            return {"estado": 1, "mensaje": "Registro encontrado en el árbol.", "dataset": [resultado]}
+            factura = {
+                "id_factura": resultado.id_factura,
+                "fecha_factura": str(resultado.fecha_factura),
+                "hora_factura": str(resultado.hora_factura),
+                "monto_total": float(resultado.monto_total),
+                "nombre_servicio": resultado.nombre_servicio
+            }
+            return {"estado": 1, "mensaje": "Registro encontrado en el árbol.", "dataset": [factura]}
 
-        # Si no se encuentra en el árbol
         raise HTTPException(status_code=404, detail="No se encontraron registros que coincidan en el árbol.")
 
     except Exception as e:

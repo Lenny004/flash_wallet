@@ -5,14 +5,11 @@ from helpers.tokens import verificar_token_t
 from models.historial import Historial
 from models.tarjeta import Tarjeta
 from schemas.historial_schema import TablaHistorial, BuscarHistorialRequest, EliminarHistorial
-from helpers.arbol_binario import ArbolBinarioBusqueda
 from datetime import datetime
 from decimal import Decimal
 
 # Creamos la ruta del router
 routerHistorial = APIRouter()
-# Crear el árbol binario
-arbol = ArbolBinarioBusqueda()
 
 @routerHistorial.get("/read")
 def obtener_historial(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
@@ -48,25 +45,27 @@ def buscar_historial(body: BuscarHistorialRequest, datos_tarjeta=Depends(verific
     if not datos_tarjeta:  # Asegúrate de que los datos del token estén presentes
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
     
-    monto = body.monto_agregado
-    # Obtener los datos de la BD
-    historial = db.query(Historial).filter(Historial.id_tarjeta == datos_tarjeta.get('id_tarjeta')).all()
-    # Insertar el resultado en el árbol binario para futuras búsquedas
-    for h in historial:
-        arbol.insertar(h.monto_agregado, {
-            "id_historial": h.id_historial,
-            "monto_agregado": h.monto_agregado,
-            "fecha_historial": h.fecha_historial,
-            "hora_historial": h.hora_historial,
-            "id_tarjeta": h.id_tarjeta
-        })
+    monto = Decimal(str(body.monto_agregado))
+    historial = (
+        db.query(Historial)
+        .filter(
+            Historial.id_tarjeta == datos_tarjeta.get('id_tarjeta'),
+            Historial.monto_agregado == monto,
+        )
+        .first()
+    )
 
-    # Primero buscar en el árbol binario
-    resultado_en_arbol = arbol.buscar(monto)
-    if resultado_en_arbol:
-        return {"estado": 1, "mensaje": "Registro encontrado arbol", "dataset": [resultado_en_arbol]}
-    else:
-        raise HTTPException(status_code=404, detail="No se encontraron registros que coincidan con los criterios de búsqueda en el árbol.")
+    if historial:
+        resultado = {
+            "id_historial": historial.id_historial,
+            "monto_agregado": historial.monto_agregado,
+            "fecha_historial": historial.fecha_historial,
+            "hora_historial": historial.hora_historial,
+            "id_tarjeta": historial.id_tarjeta,
+        }
+        return {"estado": 1, "mensaje": "Registro encontrado arbol", "dataset": [resultado]}
+
+    raise HTTPException(status_code=404, detail="No se encontraron registros que coincidan con los criterios de búsqueda en el árbol.")
 
 
 @routerHistorial.post("/recargar")

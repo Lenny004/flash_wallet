@@ -20,7 +20,10 @@ class Settings(BaseSettings):
     secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
+    jwt_refresh_expire_days: int = 7
     cors_origins: list[str] = ["http://localhost", "http://127.0.0.1"]
+    internal_api_token: str = "dev-internal-token"
+    payments_poll_seconds: int = 30
 
     @field_validator("cors_origins", mode="before")
     @classmethod

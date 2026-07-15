@@ -8,6 +8,14 @@ Que cualquier persona pueda levantar todo Flash con un solo comando, sin instala
 docker compose up
 ```
 
+Esto levanta `db`, `api` y `frontend`. La app queda disponible en **http://localhost:8080** (Nginx sirve el frontend y hace proxy de `/api` hacia la API).
+
+Para levantar solo base de datos y API:
+
+```bash
+docker compose up db api
+```
+
 Servicios:
 
 - `db`: MySQL 8 con el esquema y datos semilla.
@@ -51,27 +59,29 @@ volumes:
 
 ## Fase 3b: API contenedorizada
 
-`backend/Dockerfile` multi-stage:
+`backend/Dockerfile` usa el **contexto de build en la raíz del repo** (porque `requirements.txt` está ahí):
 
 ```dockerfile
-FROM python:3.12-slim AS base
+FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY app ./app
+COPY backend/app ./app
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-Añadir el servicio `api` al compose:
+Servicio `api` en `docker-compose.yml`:
 
 ```yaml
   api:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      SECRET_KEY: ${SECRET_KEY}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-flash_dev}@db:3306/${MYSQL_DATABASE:-dbflash}
     ports:
       - "8000:8000"
     depends_on:
@@ -79,23 +89,43 @@ Añadir el servicio `api` al compose:
         condition: service_healthy
 ```
 
+Sin volúmenes de código en el compose principal (producción). Para hot reload en desarrollo, usar `docker-compose.override.yml`.
+
 ## Fase 3c: frontend con Nginx
 
-`frontend/Dockerfile`:
+`frontend/Dockerfile` usa el **contexto de build en la raíz del repo** (igual que `backend/Dockerfile`):
 
 ```dockerfile
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm ci
-COPY . .
+COPY frontend/ ./
 RUN npm run build
 
 FROM nginx:alpine
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
 ```
 
-Servicio `frontend` en el compose, con Nginx haciendo proxy de `/api` hacia `api:8000`.
+`frontend/nginx.conf` sirve estáticos, hace proxy de `/api/` a `http://api:8000/api/`, proxy de `/health` a `http://api:8000/health`, y usa `try_files` para rutas SPA.
+
+Servicio `frontend` en `docker-compose.yml`:
+
+```yaml
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+```
+
+Acceso: **http://localhost:8080**
 
 ## Variables de entorno
 
@@ -114,8 +144,8 @@ Todas viven en `.env` (no versionado). Ver [.env.example](../.env.example) en la
 ## Healthchecks
 
 - `db`: `mysqladmin ping`.
-- `api`: endpoint `/health` (a añadir) o `/docs`.
-- El compose usa `depends_on` con `condition: service_healthy` para arrancar en orden.
+- `api`: `GET /health` vía Python (`urllib.request`).
+- El compose usa `depends_on` con `condition: service_healthy` para que `api` espere a `db` y `frontend` espere a `api`.
 
 ## override para desarrollo
 

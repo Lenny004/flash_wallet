@@ -1,6 +1,3 @@
-from datetime import datetime
-
-from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import ValidationError
 from sqlalchemy import and_
@@ -8,11 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_t
 from app.models.estado import Estado
-from app.models.factura import Factura
 from app.models.servicio import Servicio
-from app.models.tarjeta import Tarjeta
 from app.models.transaccion import Transaccion
 from app.schemas.transaccion_schema import TransaccionCreate
+from app.services.payments_worker import procesar_pagos_tarjeta
 
 routerTransaccion = APIRouter()
 
@@ -121,50 +117,7 @@ def procesar_pagos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depen
     if not id_tarjeta:
         raise HTTPException(status_code=400, detail="No se encontró el ID de la tarjeta.")
 
-    transacciones = db.query(Transaccion).filter(
-        Transaccion.id_tarjeta == id_tarjeta,
-        Transaccion.frecuencia >= 0,
-    ).all()
-
-    for transaccion in transacciones:
-        tarjeta = db.query(Tarjeta).filter(Tarjeta.id_tarjeta == transaccion.id_tarjeta).first()
-
-        transaccion_datetime = datetime.combine(transaccion.fecha_transaccion, transaccion.hora_transaccion)
-
-        if transaccion.frecuencia == 0:
-            transaccion.id_estado = 3
-        if tarjeta and datetime.now() > transaccion_datetime:
-            if tarjeta.balance >= transaccion.monto:
-                tarjeta.balance -= transaccion.monto
-                transaccion.frecuencia -= 1
-
-                if transaccion.frecuencia <= 0:
-                    transaccion.id_estado = 3
-                else:
-                    transaccion.id_estado = 2
-
-                factura = Factura(
-                    fecha_factura=datetime.now().date(),
-                    hora_factura=datetime.now().time(),
-                    monto_total=transaccion.monto,
-                    id_transaccion=transaccion.id_transaccion,
-                )
-                db.add(factura)
-                db.commit()
-                db.refresh(factura)
-
-                transaccion.fecha_transaccion = transaccion.fecha_transaccion + relativedelta(months=1)
-
-            else:
-                transaccion.id_estado = 1
-
-        else:
-            continue
-
-        if transaccion.frecuencia <= 0 and transaccion.id_estado != 3:
-            transaccion.id_estado = 3
-
-    db.commit()
+    procesar_pagos_tarjeta(db, id_tarjeta)
     return {"estado": 1, "mensaje": "Pagos procesados correctamente."}
 
 

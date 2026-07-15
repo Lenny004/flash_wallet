@@ -1,7 +1,41 @@
+from datetime import datetime, timedelta, timezone
+
 import jwt
 from fastapi import Header, HTTPException
 
 from app.core.config import settings
+
+
+def crear_access_token(data: dict) -> str:
+    payload = data.copy()
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
+
+
+def crear_refresh_token(data: dict) -> str:
+    payload = data.copy()
+    payload["type"] = "refresh"
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(days=settings.jwt_refresh_expire_days)
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
+
+
+def verificar_refresh_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(
+            token, settings.secret_key, algorithms=[settings.jwt_algorithm]
+        )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="El token ha expirado.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token inválido.")
+
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Token inválido: no es un refresh token.")
+
+    if not payload.get("idusuario"):
+        raise HTTPException(status_code=401, detail="Token inválido: datos faltantes.")
+
+    return payload
 
 
 def verificar_token_t(authorization: str = Header(None)):

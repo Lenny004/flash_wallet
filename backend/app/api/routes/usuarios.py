@@ -1,16 +1,13 @@
-from datetime import datetime, timedelta, timezone
-
-import jwt
 from fastapi import APIRouter, Depends, HTTPException
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_U
 from app.api.routes.tarjeta import crear_tarjeta_usuario
-from app.core.config import settings
+from app.core.security import crear_access_token, crear_refresh_token, verificar_refresh_token
 from app.models.tarjeta import Tarjeta
 from app.models.usuarios import Usuario
-from app.schemas.usuario_schema import LoginRequest, UsuarioCreate, UsuarioUpdate
+from app.schemas.usuario_schema import LoginRequest, RefreshRequest, UsuarioCreate, UsuarioUpdate
 
 routerUsuario = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -81,37 +78,75 @@ def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
     if not usuario or not pwd_context.verify(body.contra, usuario.contra):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos.")
 
-    expira = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
-    payload_usuario = {
-        "idusuario": usuario.id_usuario,
-        "usuario": usuario.usuario,
-        "nombres": usuario.nombres,
-        "apellidos": usuario.apellidos,
-        "telefono": usuario.telefono,
-        "direccion": usuario.direccion,
-        "email": usuario.email,
-        "exp": expira,
-    }
-    token_usuario = jwt.encode(
-        payload_usuario, settings.secret_key, algorithm=settings.jwt_algorithm
-    )
-
     tarjeta = db.query(Tarjeta).filter(Tarjeta.id_usuario == usuario.id_usuario).first()
     if not tarjeta:
         raise HTTPException(status_code=404, detail="No se encontró una tarjeta asociada a este usuario.")
 
-    payload_tarjeta = {
-        "id_tarjeta": tarjeta.id_tarjeta,
-        "nombres": usuario.nombres + " " + usuario.apellidos,
-        "exp": expira,
-    }
-    token_tarjeta = jwt.encode(
-        payload_tarjeta, settings.secret_key, algorithm=settings.jwt_algorithm
+    token_usuario = crear_access_token(
+        {
+            "idusuario": usuario.id_usuario,
+            "usuario": usuario.usuario,
+            "nombres": usuario.nombres,
+            "apellidos": usuario.apellidos,
+            "telefono": usuario.telefono,
+            "direccion": usuario.direccion,
+            "email": usuario.email,
+        }
     )
+    token_tarjeta = crear_access_token(
+        {
+            "id_tarjeta": tarjeta.id_tarjeta,
+            "nombres": usuario.nombres + " " + usuario.apellidos,
+        }
+    )
+    refresh_token = crear_refresh_token({"idusuario": usuario.id_usuario})
 
     return {
         "estado": 1,
         "mensaje": "Inicio de sesión exitoso.",
+        "token_usuario": token_usuario,
+        "token_tarjeta": token_tarjeta,
+        "refresh_token": refresh_token,
+    }
+
+
+@routerUsuario.post("/refresh")
+def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
+    """
+    Renueva los access tokens usando un refresh token válido.
+    """
+    payload = verificar_refresh_token(body.refresh_token)
+    id_usuario = payload["idusuario"]
+
+    usuario = db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuario no encontrado.")
+
+    tarjeta = db.query(Tarjeta).filter(Tarjeta.id_usuario == id_usuario).first()
+    if not tarjeta:
+        raise HTTPException(status_code=404, detail="No se encontró una tarjeta asociada a este usuario.")
+
+    token_usuario = crear_access_token(
+        {
+            "idusuario": usuario.id_usuario,
+            "usuario": usuario.usuario,
+            "nombres": usuario.nombres,
+            "apellidos": usuario.apellidos,
+            "telefono": usuario.telefono,
+            "direccion": usuario.direccion,
+            "email": usuario.email,
+        }
+    )
+    token_tarjeta = crear_access_token(
+        {
+            "id_tarjeta": tarjeta.id_tarjeta,
+            "nombres": usuario.nombres + " " + usuario.apellidos,
+        }
+    )
+
+    return {
+        "estado": 1,
+        "mensaje": "Tokens renovados exitosamente.",
         "token_usuario": token_usuario,
         "token_tarjeta": token_tarjeta,
     }
