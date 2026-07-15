@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_t
 from app.models.historial import Historial
+from app.models.movimiento import Movimiento
 from app.schemas.historial_schema import BuscarHistorialRequest, EliminarHistorial, TablaHistorial
+from app.schemas.movimiento_schema import TablaMovimiento
 from app.services.wallet import recargar_saldo
 routerHistorial = APIRouter()
 
@@ -34,6 +36,38 @@ def obtener_historial(datos_tarjeta=Depends(verificar_token_t), db: Session = De
     ]
 
     return {"estado": 1, "dataset": historial_response}
+
+
+@routerHistorial.get("/movimientos")
+def obtener_movimientos(datos_tarjeta=Depends(verificar_token_t), db: Session = Depends(get_db)):
+    """
+    Lista los movimientos de saldo de la tarjeta actual, más recientes primero.
+    """
+    if not datos_tarjeta:
+        return {"estado": 0, "exception": "Token inválido o expirado."}
+
+    movimientos = (
+        db.query(Movimiento)
+        .filter(Movimiento.id_tarjeta == datos_tarjeta.get("id_tarjeta"))
+        .order_by(Movimiento.creado_en.desc())
+        .all()
+    )
+
+    dataset = [
+        TablaMovimiento(
+            id_movimiento=m.id_movimiento,
+            id_tarjeta=m.id_tarjeta,
+            tipo=m.tipo,
+            monto=float(m.monto),
+            saldo_anterior=float(m.saldo_anterior),
+            saldo_nuevo=float(m.saldo_nuevo),
+            referencia=m.referencia,
+            creado_en=m.creado_en,
+        )
+        for m in movimientos
+    ]
+
+    return {"estado": 1, "dataset": dataset}
 
 
 @routerHistorial.post("/buscar")

@@ -24,7 +24,7 @@ def procesar_pagos_tarjeta(db: Session, id_tarjeta: int) -> None:
             transaccion.id_estado = 3
         if datetime.now() > transaccion_datetime:
             try:
-                debitar_saldo(db, transaccion.id_tarjeta, transaccion.monto)
+                debitar_saldo(db, transaccion.id_tarjeta, transaccion.monto, referencia=str(transaccion.id_transaccion))
                 transaccion.frecuencia -= 1
 
                 if transaccion.frecuencia <= 0:
