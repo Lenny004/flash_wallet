@@ -11,6 +11,7 @@ REQUIRED = ("SECRET_KEY", "DATABASE_URL")
 
 
 def _load_env_file() -> None:
+    """Carga variables del .env al entorno si aún no están definidas."""
     if not ENV_FILE.exists():
         return
     for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
@@ -24,6 +25,7 @@ def _load_env_file() -> None:
 
 
 def main() -> int:
+    """Comprueba variables requeridas; retorna 0 si están presentes, 1 si faltan."""
     _load_env_file()
     missing = [name for name in REQUIRED if not os.environ.get(name, "").strip()]
     if missing:
