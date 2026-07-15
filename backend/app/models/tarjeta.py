@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Tarjeta(Base):
+    """Tarjeta digital vinculada a un usuario (tabla tbtarjeta_digital)."""
+
     __tablename__ = "tbtarjeta_digital"
 
     id_tarjeta = Column(Integer, primary_key=True, index=True, autoincrement=True)

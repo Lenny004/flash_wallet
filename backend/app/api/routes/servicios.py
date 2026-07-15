@@ -13,10 +13,13 @@ def listar_servicios(
     datos_usuario=Depends(verificar_token_U),
     db: Session = Depends(get_db),
 ):
-    """Lista todos los servicios (admin). Requiere token de usuario."""
-    servicios = db.query(Servicio).order_by(Servicio.id_servicio).all()
+    """
+    Lista todos los servicios disponibles para administración.
+    Auth: requerida (token de usuario).
+    """
+    servicios_registrados = db.query(Servicio).order_by(Servicio.id_servicio).all()
     dataset = [
-        ServicioOut(id=s.id_servicio, nombre=s.nombre, img_servicio=s.img_servicio)
-        for s in servicios
+        ServicioOut(id=servicio.id_servicio, nombre=servicio.nombre, img_servicio=servicio.img_servicio)
+        for servicio in servicios_registrados
     ]
     return {"estado": 1, "dataset": dataset}

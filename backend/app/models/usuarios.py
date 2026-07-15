@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Usuario(Base):
+    """Usuario registrado en la plataforma (tabla tbusuario)."""
+
     __tablename__ = "tbusuario"
 
     id_usuario = Column(Integer, primary_key=True, index=True, autoincrement=True)

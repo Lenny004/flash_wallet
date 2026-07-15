@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Movimiento(Base):
+    """Movimiento de saldo en una tarjeta digital (tabla tbmovimiento)."""
+
     __tablename__ = "tbmovimiento"
 
     id_movimiento = Column(Integer, primary_key=True, autoincrement=True, index=True)

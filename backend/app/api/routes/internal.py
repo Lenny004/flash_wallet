@@ -15,6 +15,10 @@ def verificar_internal_token(x_internal_token: str = Header(...)) -> None:
 
 @routerInternal.post("/procesar_pagos", dependencies=[Depends(verificar_internal_token)])
 def procesar_pagos_interno(db: Session = Depends(get_db)):
+    """
+    Procesa pagos pendientes de todas las tarjetas (tarea batch/cron).
+    Auth: requerida (header X-Internal-Token).
+    """
     tarjetas_procesadas = procesar_pagos_todas_tarjetas(db)
     return {
         "estado": 1,

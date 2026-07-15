@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class TransaccionCreate(BaseModel):
+    """Datos para crear una transacción de pago."""
+
     fecha_transaccion: date
     hora_transaccion: time
     monto: float = Field(..., gt=0)
@@ -18,5 +20,7 @@ class TransaccionCreate(BaseModel):
 
 
 class TransaccionDesdeIntent(TransaccionCreate):
+    """Transacción creada a partir de un payment intent firmado (QR)."""
+
     exp: int = Field(..., ge=1)
     sig: str = Field(..., min_length=64, max_length=64)

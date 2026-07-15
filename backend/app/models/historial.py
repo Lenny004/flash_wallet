@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Historial(Base):
+    """Registro de depósito/recarga en una tarjeta digital (tabla tbhistorial)."""
+
     __tablename__ = "tbhistorial"
 
     id_historial = Column(Integer, primary_key=True, autoincrement=True, index=True)

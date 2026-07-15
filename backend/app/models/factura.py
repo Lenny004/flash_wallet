@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Factura(Base):
+    """Factura generada a partir de una transacción completada (tabla tbfactura)."""
+
     __tablename__ = "tbfactura"
 
     id_factura = Column(Integer, primary_key=True, autoincrement=True, index=True)

@@ -4,6 +4,8 @@ from app.db.base import Base
 
 
 class Servicio(Base):
+    """Servicio de pago disponible en la plataforma (tabla tbservicios)."""
+
     __tablename__ = "tbservicios"
 
     id_servicio = Column(Integer, primary_key=True, autoincrement=True, index=True)
