@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db, verificar_token_t
 from app.models.decode_qr import decode_qr_image
 from app.models.servicio import Servicio
+from app.services.qr_intent import crear_intent
 
 routerQR = APIRouter()
 
@@ -52,8 +53,6 @@ def procesar_qr(qr_text: str, db: Session):
 
         data = {
             "id_servicio": id_servicio,
-            "nombre_servicio": servicio.nombre,
-            "imagen": servicio.img_servicio,
             "fecha": partes[1],
             "hora": partes[2],
             "monto": float(partes[3]),
@@ -61,7 +60,19 @@ def procesar_qr(qr_text: str, db: Session):
             "descripcion": partes[5],
             "id_estado": int(partes[6]),
         }
-        return data
+        intent = crear_intent(data)
+        servicio_info = {
+            "id_servicio": id_servicio,
+            "nombre_servicio": servicio.nombre,
+            "imagen": servicio.img_servicio,
+        }
+        return {
+            "estado": 1,
+            "intent": intent,
+            "servicio": servicio_info,
+            **servicio_info,
+            **data,
+        }
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Error en el formato del QR: {str(e)}")

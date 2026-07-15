@@ -15,3 +15,8 @@ class TransaccionCreate(BaseModel):
     id_estado: int = Field(..., ge=1)
 
     model_config = {"from_attributes": True}
+
+
+class TransaccionDesdeIntent(TransaccionCreate):
+    exp: int = Field(..., ge=1)
+    sig: str = Field(..., min_length=64, max_length=64)
