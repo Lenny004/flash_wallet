@@ -51,8 +51,8 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 ## Fase 3 - Docker end-to-end (1 semana)
 
-- [ ] `docker-compose.yml`: `db` + `api` + `frontend`.
-- [ ] `Dockerfile` multi-stage para backend y frontend.
+- [~] `docker-compose.yml`: `db` + `api` (falta servicio frontend/nginx).
+- [~] `Dockerfile` multi-stage para backend (existe Dockerfile API; falta frontend).
 - [~] `.github/workflows/ci.yml`: lint (ruff) + tests (pytest) + build frontend (falta build Docker API).
 - [x] Endpoint `/health` (falta healthcheck en Compose del servicio api).
 
@@ -61,12 +61,12 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 ## Fase 4 - Patrones fintech (2-4 semanas, incremental)
 
 - [x] Autenticar endpoints mutables críticos (deletes, procesar_pagos, QR); falta auditoría completa.
-- [ ] Transacciones atómicas para recarga/débito con validación de saldo.
+- [x] Transacciones atómicas para recarga/débito (`services/wallet.py` + `with_for_update`).
 - [ ] Ledger de movimientos (audit trail).
 - [ ] QR con expiración / payment intent firmado.
 - [x] Quitar pan/cvc del JWT de tarjeta (faltan refresh tokens).
 - [ ] Convertir `procesar_pagos` en worker/cron en vez de polling desde el navegador.
-- [ ] Reemplazar el BST en memoria por consultas SQL.
+- [x] Reemplazar el BST en memoria por consultas SQL.
 
 **Done:** operaciones financieras seguras, auditables y sin endpoints abiertos.
 

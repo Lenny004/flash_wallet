@@ -5,6 +5,12 @@
 Que cualquier persona pueda levantar todo Flash con un solo comando, sin instalar XAMPP:
 
 ```bash
+docker compose up db api
+```
+
+Para levantar todo el stack (cuando exista `frontend`):
+
+```bash
 docker compose up
 ```
 
@@ -51,33 +57,37 @@ volumes:
 
 ## Fase 3b: API contenedorizada
 
-`backend/Dockerfile` multi-stage:
+`backend/Dockerfile` usa el **contexto de build en la raíz del repo** (porque `requirements.txt` está ahí):
 
 ```dockerfile
-FROM python:3.12-slim AS base
+FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY app ./app
+COPY backend/app ./app
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-Añadir el servicio `api` al compose:
+Servicio `api` en `docker-compose.yml`:
 
 ```yaml
   api:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      SECRET_KEY: ${SECRET_KEY}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-flash_dev}@db:3306/${MYSQL_DATABASE:-dbflash}
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
 ```
+
+Sin volúmenes de código en el compose principal (producción). Para hot reload en desarrollo, usar `docker-compose.override.yml`.
 
 ## Fase 3c: frontend con Nginx
 
