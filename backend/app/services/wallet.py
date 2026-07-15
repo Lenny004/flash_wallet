@@ -48,7 +48,7 @@ def recargar_saldo(db: Session, id_tarjeta: int, monto) -> Historial:
 
     saldo_anterior = tarjeta.balance
     tarjeta.balance = saldo_anterior + monto_decimal
-    tarjeta.fecha_actualizacion = datetime.now().date()
+    tarjeta.fecha_actualizacion = datetime.now()
 
     now = datetime.now()
     historial = Historial(
@@ -97,7 +97,7 @@ def debitar_saldo(
 
     saldo_anterior = tarjeta.balance
     tarjeta.balance = saldo_anterior - monto_decimal
-    tarjeta.fecha_actualizacion = datetime.now().date()
+    tarjeta.fecha_actualizacion = datetime.now()
 
     _registrar_movimiento(
         db,
