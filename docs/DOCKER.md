@@ -5,13 +5,15 @@
 Que cualquier persona pueda levantar todo Flash con un solo comando, sin instalar XAMPP:
 
 ```bash
-docker compose up db api
+docker compose up
 ```
 
-Para levantar todo el stack (cuando exista `frontend`):
+Esto levanta `db`, `api` y `frontend`. La app queda disponible en **http://localhost:8080** (Nginx sirve el frontend y hace proxy de `/api` hacia la API).
+
+Para levantar solo base de datos y API:
 
 ```bash
-docker compose up
+docker compose up db api
 ```
 
 Servicios:
@@ -91,21 +93,39 @@ Sin volúmenes de código en el compose principal (producción). Para hot reload
 
 ## Fase 3c: frontend con Nginx
 
-`frontend/Dockerfile`:
+`frontend/Dockerfile` usa el **contexto de build en la raíz del repo** (igual que `backend/Dockerfile`):
 
 ```dockerfile
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package*.json ./
+COPY frontend/package*.json ./
 RUN npm ci
-COPY . .
+COPY frontend/ ./
 RUN npm run build
 
 FROM nginx:alpine
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
 ```
 
-Servicio `frontend` en el compose, con Nginx haciendo proxy de `/api` hacia `api:8000`.
+`frontend/nginx.conf` sirve estáticos, hace proxy de `/api/` a `http://api:8000/api/`, proxy de `/health` a `http://api:8000/health`, y usa `try_files` para rutas SPA.
+
+Servicio `frontend` en `docker-compose.yml`:
+
+```yaml
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+```
+
+Acceso: **http://localhost:8080**
 
 ## Variables de entorno
 
@@ -124,8 +144,8 @@ Todas viven en `.env` (no versionado). Ver [.env.example](../.env.example) en la
 ## Healthchecks
 
 - `db`: `mysqladmin ping`.
-- `api`: endpoint `/health` (a añadir) o `/docs`.
-- El compose usa `depends_on` con `condition: service_healthy` para arrancar en orden.
+- `api`: `GET /health` vía Python (`urllib.request`).
+- El compose usa `depends_on` con `condition: service_healthy` para que `api` espere a `db` y `frontend` espere a `api`.
 
 ## override para desarrollo
 
