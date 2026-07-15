@@ -13,6 +13,7 @@ from app.api.routes.tarjeta import routerTarjeta
 from app.api.routes.transaccion import routerTransaccion
 from app.api.routes.usuarios import routerUsuario
 from app.core.config import settings
+from app.schemas.common import HealthResponse
 from app.db.session import SessionLocal
 from app.services.payments_worker import procesar_pagos_todas_tarjetas
 
@@ -55,7 +56,7 @@ app.add_middleware(
 )
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 def health():
     return {"status": "ok"}
 

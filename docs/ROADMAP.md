@@ -31,7 +31,7 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 - [x] `core/config.py` con Pydantic Settings.
 - [x] Unificar `declarative_base` y declarar Base única.
 - [x] Introducir Alembic (esqueleto listo; falta migración inicial generada).
-- [ ] Estandarizar respuestas y errores; usar `response_model`.
+- [~] Estandarizar respuestas y errores; usar `response_model` (parcial: `/health`, `GET /api/usuarios/`).
 - [x] Tests con pytest de humo y guards de auth (401 sin token); faltan tests de login/QR con DB.
 - [x] `ruff` configurado (`ruff.toml`; lint en CI; sin `--fix` masivo aún).
 - [x] Docker Compose solo para MySQL (siguiente paso incremental).
@@ -60,8 +60,8 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 - [x] Autenticar endpoints mutables críticos (deletes, procesar_pagos, QR); falta auditoría completa.
 - [x] Transacciones atómicas para recarga/débito (`services/wallet.py` + `with_for_update`).
-- [ ] Ledger de movimientos (audit trail).
-- [ ] QR con expiración / payment intent firmado.
+- [x] Ledger de movimientos (audit trail).
+- [x] QR con expiración / payment intent firmado.
 - [x] Quitar pan/cvc del JWT de tarjeta; refresh tokens implementados (`POST /api/usuarios/refresh`).
 - [x] Convertir `procesar_pagos` en worker/cron en vez de polling desde el navegador.
 - [x] Reemplazar el BST en memoria por consultas SQL.

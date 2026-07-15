@@ -29,3 +29,9 @@ class UsuarioUpdate(BaseModel):
     email: EmailStr
 
     model_config = {"from_attributes": True}
+
+
+class HayUsuariosResponse(BaseModel):
+    estado: int
+    hay_usuarios: bool
+    exception: str | None = None

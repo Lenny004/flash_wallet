@@ -7,13 +7,19 @@ from app.api.routes.tarjeta import crear_tarjeta_usuario
 from app.core.security import crear_access_token, crear_refresh_token, verificar_refresh_token
 from app.models.tarjeta import Tarjeta
 from app.models.usuarios import Usuario
-from app.schemas.usuario_schema import LoginRequest, RefreshRequest, UsuarioCreate, UsuarioUpdate
+from app.schemas.usuario_schema import (
+    HayUsuariosResponse,
+    LoginRequest,
+    RefreshRequest,
+    UsuarioCreate,
+    UsuarioUpdate,
+)
 
 routerUsuario = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@routerUsuario.get("/")
+@routerUsuario.get("/", response_model=HayUsuariosResponse)
 def obtener_usuarios(db: Session = Depends(get_db)):
     """
     Indica si existen usuarios registrados (primer uso), sin exponer datos sensibles.
@@ -68,7 +74,7 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
     }
 
 
-@routerUsuario.post("/login")
+@routerUsuario.post("/login", response_model=None)
 def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
     """
     Verifica las credenciales del usuario.
@@ -110,7 +116,7 @@ def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
     }
 
 
-@routerUsuario.post("/refresh")
+@routerUsuario.post("/refresh", response_model=None)
 def refresh_tokens(body: RefreshRequest, db: Session = Depends(get_db)):
     """
     Renueva los access tokens usando un refresh token válido.

@@ -21,9 +21,9 @@ y facturación.
 
 | Capa | Tecnología |
 |------|------------|
-| Backend | FastAPI + SQLAlchemy + PyJWT + Pydantic |
+| Backend | FastAPI + SQLAlchemy + PyJWT + Pydantic (`backend/app/`) |
 | Base de datos | MySQL 8 |
-| Frontend | HTML + CSS + JavaScript (SweetAlert2) |
+| Frontend | Vite + TypeScript (`frontend/`); HTML/CSS/JS legacy en transición |
 
 Detalle y evolución del stack en [docs/STACK.md](docs/STACK.md).
 
@@ -31,45 +31,55 @@ Detalle y evolución del stack en [docs/STACK.md](docs/STACK.md).
 
 ```
 Flash/
-├── api/            # Backend FastAPI (routers, modelos, schemas, helpers)
-├── views/          # Páginas HTML
-├── controllers/    # Lógica JavaScript por página
-├── css/            # Estilos y fuente
+├── backend/        # Backend activo (FastAPI, modelos, schemas, tests)
+├── frontend/       # Frontend activo (Vite + páginas HTML estáticas)
+├── api/            # Legacy — ver api/DEPRECATED.md (se elimina en v0.3.0)
+├── views/          # Legacy (XAMPP)
+├── controllers/    # Legacy (XAMPP)
+├── css/            # Legacy (XAMPP)
 ├── resources/      # Librerías de terceros
 ├── docs/           # Documentación y plan de escalado
 └── dbflash.sql     # Esquema y datos semilla
 ```
 
-## Puesta en marcha (desarrollo actual)
+## Puesta en marcha (desarrollo)
 
-Requisitos: Python 3.12+, MySQL 8 (o XAMPP), y un servidor estático para las vistas.
+Requisitos: Python 3.12+, Node.js 18+, MySQL 8 (o XAMPP).
 
 > Trabajo en la rama **`develop`**. No se hace push directo a `main`.
 > Repo: https://github.com/Lenny004/flash_wallet
+> Guía de contribución: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-Hay dos formas de levantar la API:
+1. Crear la base de datos importando `dbflash.sql`.
+2. Copiar `.env.example` a `.env` y ajustar los valores (sobre todo `SECRET_KEY`).
 
-### Opción recomendada (estructura nueva)
+### Backend (`backend/app/`)
 
 ```bash
 cd backend
 pip install -r ../requirements.txt
-# .env en la raíz Flash/ (copia desde .env.example)
 uvicorn app.main:app --reload
 ```
 
-### Opción legacy (`api/`)
+### Frontend (Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abrir [http://localhost:5173](http://localhost:5173) — redirige a `/pages/login.html`.
+
+### Legacy (`api/` + XAMPP)
+
+Solo para compatibilidad durante la migración. Ver [api/DEPRECATED.md](api/DEPRECATED.md).
 
 ```bash
 cd api
 pip install -r ../requirements.txt
 uvicorn api:app --reload
-# o: python api.py
 ```
-
-1. Crear la base de datos importando `dbflash.sql`.
-2. Copiar `.env.example` a `.env` y ajustar los valores (sobre todo `SECRET_KEY`).
-3. Servir la carpeta de vistas (XAMPP o estático) y abrir `views/login.html`.
 
 Documentación interactiva: `http://127.0.0.1:8000/docs`.
 Healthcheck: `http://127.0.0.1:8000/health`.
