@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_U
 from app.api.routes.tarjeta import crear_tarjeta_usuario
+from app.core.rate_limit import rate_limit
 from app.core.security import crear_access_token, crear_refresh_token, verificar_refresh_token
 from app.models.tarjeta import Tarjeta
 from app.models.usuarios import Usuario
@@ -75,10 +76,13 @@ def crear_usuario(body: UsuarioCreate, db: Session = Depends(get_db)):
 
 
 @routerUsuario.post("/login", response_model=None)
-def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
+def login_usuario(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     """
     Verifica las credenciales del usuario.
     """
+    client_ip = request.client.host if request.client else "unknown"
+    rate_limit(f"login:{client_ip}", limit=5, window=60)
+
     usuario = db.query(Usuario).filter(Usuario.usuario == body.usuario).first()
 
     if not usuario or not pwd_context.verify(body.contra, usuario.contra):

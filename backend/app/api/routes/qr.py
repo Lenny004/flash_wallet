@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_t
+from app.core.rate_limit import rate_limit
 from app.models.decode_qr import decode_qr_image
 from app.models.servicio import Servicio
 from app.services.qr_intent import crear_intent
@@ -11,12 +12,17 @@ routerQR = APIRouter()
 
 @routerQR.post("/")
 async def decode_qr(
+    request: Request,
     qr_image: UploadFile = File(...),
     datos_tarjeta=Depends(verificar_token_t),
     db: Session = Depends(get_db),
 ):
     if not datos_tarjeta:
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
+
+    id_tarjeta = datos_tarjeta.get("id_tarjeta")
+    rate_limit(f"qr:{id_tarjeta}", limit=20, window=60)
+
     try:
         image_data = await qr_image.read()
         qr_text = decode_qr_image(image_data)
