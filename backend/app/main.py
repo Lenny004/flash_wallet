@@ -22,7 +22,11 @@ from app.services.payments_worker import procesar_pagos_todas_tarjetas
 logger = logging.getLogger(__name__)
 
 
+# --- Worker de pagos en background ---
+
+
 async def _payments_poll_loop() -> None:
+    """Bucle que procesa pagos recurrentes cada ``payments_poll_seconds``."""
     while True:
         db = SessionLocal()
         try:
@@ -38,6 +42,7 @@ async def _payments_poll_loop() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Arranca y detiene el worker de pagos con el ciclo de vida de la app."""
     task = asyncio.create_task(_payments_poll_loop())
     yield
     task.cancel()
@@ -47,7 +52,11 @@ async def lifespan(app: FastAPI):
         pass
 
 
+# --- Aplicación FastAPI ---
+
 app = FastAPI(title="Flash Wallet", version="0.2.0", lifespan=lifespan)
+
+# --- Middleware ---
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,8 +67,12 @@ app.add_middleware(
 )
 
 
+# --- Health check ---
+
+
 @app.get("/health", response_model=HealthResponse)
 def health():
+    """Comprueba conectividad con la base de datos."""
     db_status = "ok"
     try:
         db = SessionLocal()
@@ -73,6 +86,8 @@ def health():
     }
 
 
+# --- Routers ---
+
 app.include_router(routerUsuario, prefix="/api/usuarios", tags=["Usuarios"])
 app.include_router(routerHistorial, prefix="/api/historial", tags=["Historial"])
 app.include_router(routerTarjeta, prefix="/api/tarjeta", tags=["Tarjeta"])
@@ -81,6 +96,8 @@ app.include_router(routerTransaccion, prefix="/api/transaccion", tags=["Transacc
 app.include_router(routerFactura, prefix="/api/factura", tags=["Factura"])
 app.include_router(routerServicios, prefix="/api/servicios", tags=["Servicios"])
 app.include_router(routerInternal, prefix="/api/internal", tags=["Internal"])
+
+# --- Punto de entrada local ---
 
 if __name__ == "__main__":
     import uvicorn

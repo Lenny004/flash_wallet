@@ -14,6 +14,14 @@ _revoked_jtis: set[str] = set()
 
 
 def _extract_jti(token: str) -> str | None:
+    """Obtiene el ``jti`` del token sin validar expiración.
+
+    Args:
+        token: JWT del cual extraer el identificador.
+
+    Returns:
+        Valor de ``jti`` o ``None`` si el token no es decodificable.
+    """
     try:
         payload = jwt.decode(
             token,
@@ -27,14 +35,25 @@ def _extract_jti(token: str) -> str | None:
 
 
 def revoke(token: str) -> None:
-    """Marca un refresh token como revocado (por jti)."""
+    """Marca un refresh token como revocado (por jti).
+
+    Args:
+        token: JWT de refresh a invalidar.
+    """
     jti = _extract_jti(token)
     if jti:
         _revoked_jtis.add(jti)
 
 
 def is_revoked(token: str) -> bool:
-    """True si el jti del token está en la blacklist."""
+    """Indica si el jti del token está en la blacklist.
+
+    Args:
+        token: JWT a comprobar.
+
+    Returns:
+        ``True`` si el token fue revocado.
+    """
     jti = _extract_jti(token)
     if not jti:
         return False
@@ -42,4 +61,5 @@ def is_revoked(token: str) -> bool:
 
 
 def new_jti() -> str:
+    """Genera un identificador único para un nuevo refresh token."""
     return uuid4().hex

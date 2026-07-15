@@ -1,3 +1,5 @@
+"""Operaciones de saldo: recargas, débitos y registro de movimientos."""
+
 from datetime import datetime
 from decimal import Decimal
 
@@ -18,6 +20,20 @@ def _registrar_movimiento(
     saldo_nuevo: Decimal,
     referencia: str | None = None,
 ) -> Movimiento:
+    """Persiste un movimiento de wallet sin hacer commit.
+
+    Args:
+        db: Sesión SQLAlchemy activa.
+        id_tarjeta: Tarjeta afectada.
+        tipo: Tipo de movimiento (``recarga``, ``debito``, etc.).
+        monto: Importe del movimiento.
+        saldo_anterior: Balance antes de la operación.
+        saldo_nuevo: Balance después de la operación.
+        referencia: Identificador externo opcional (p. ej. id de historial).
+
+    Returns:
+        Instancia de ``Movimiento`` añadida a la sesión.
+    """
     movimiento = Movimiento(
         id_tarjeta=id_tarjeta,
         tipo=tipo,
@@ -32,6 +48,19 @@ def _registrar_movimiento(
 
 
 def recargar_saldo(db: Session, id_tarjeta: int, monto) -> Historial:
+    """Acredita saldo a una tarjeta y registra historial + movimiento.
+
+    Args:
+        db: Sesión SQLAlchemy.
+        id_tarjeta: Tarjeta a recargar.
+        monto: Importe positivo a acreditar.
+
+    Returns:
+        Registro de ``Historial`` creado.
+
+    Raises:
+        HTTPException: 400 si el monto no es positivo; 404 si no existe la tarjeta.
+    """
     monto_decimal = Decimal(str(monto))
     if monto_decimal <= 0:
         raise HTTPException(status_code=400, detail="El monto debe ser mayor a 0")
@@ -50,11 +79,11 @@ def recargar_saldo(db: Session, id_tarjeta: int, monto) -> Historial:
     tarjeta.balance = saldo_anterior + monto_decimal
     tarjeta.fecha_actualizacion = datetime.now()
 
-    now = datetime.now()
+    ahora = datetime.now()
     historial = Historial(
         monto_agregado=monto_decimal,
-        fecha_historial=now.date(),
-        hora_historial=now.time(),
+        fecha_historial=ahora.date(),
+        hora_historial=ahora.time(),
         id_tarjeta=id_tarjeta,
     )
     db.add(historial)
@@ -80,6 +109,20 @@ def debitar_saldo(
     monto,
     referencia: str | None = None,
 ) -> Tarjeta:
+    """Debita saldo de una tarjeta con bloqueo pesimista (``FOR UPDATE``).
+
+    Args:
+        db: Sesión SQLAlchemy.
+        id_tarjeta: Tarjeta a debitar.
+        monto: Importe a descontar.
+        referencia: Identificador externo opcional (p. ej. id de transacción).
+
+    Returns:
+        Tarjeta actualizada (sin commit; el llamador decide cuándo confirmar).
+
+    Raises:
+        HTTPException: 400 si saldo insuficiente; 404 si no existe la tarjeta.
+    """
     monto_decimal = Decimal(str(monto))
 
     tarjeta = (

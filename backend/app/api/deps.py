@@ -1,3 +1,5 @@
+"""Dependencias compartidas reexportadas para rutas de la API."""
+
 from app.core.security import verificar_token_U, verificar_token_t
 from app.db.session import get_db
 
