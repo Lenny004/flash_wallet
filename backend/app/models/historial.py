@@ -1,0 +1,13 @@
+from sqlalchemy import Column, Integer, String, DECIMAL, Date, Time
+
+from app.db.base import Base
+
+
+class Historial(Base):
+    __tablename__ = "tbhistorial"
+
+    id_historial = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    monto_agregado = Column(DECIMAL(7, 2), nullable=False)
+    fecha_historial = Column(Date, nullable=False)
+    hora_historial = Column(Time, nullable=False)
+    id_tarjeta = Column(Integer, nullable=False)

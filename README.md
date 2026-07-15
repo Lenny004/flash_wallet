@@ -44,24 +44,35 @@ Flash/
 
 Requisitos: Python 3.12+, MySQL 8 (o XAMPP), y un servidor estático para las vistas.
 
+> Trabajo en la rama **`develop`**. No se hace push directo a `main`.
+> Repo: https://github.com/Lenny004/flash_wallet
+
+Hay dos formas de levantar la API:
+
+### Opción recomendada (estructura nueva)
+
+```bash
+cd backend
+pip install -r ../requirements.txt
+# .env en la raíz Flash/ (copia desde .env.example)
+uvicorn app.main:app --reload
+```
+
+### Opción legacy (`api/`)
+
+```bash
+cd api
+pip install -r ../requirements.txt
+uvicorn api:app --reload
+# o: python api.py
+```
+
 1. Crear la base de datos importando `dbflash.sql`.
-2. Copiar `.env.example` a `.env` y ajustar los valores.
-3. Instalar dependencias del backend:
+2. Copiar `.env.example` a `.env` y ajustar los valores (sobre todo `SECRET_KEY`).
+3. Servir la carpeta de vistas (XAMPP o estático) y abrir `views/login.html`.
 
-```bash
-pip install -r requirements.txt
-```
-
-4. Levantar la API:
-
-```bash
-uvicorn api.api:app --reload
-```
-
-5. Servir la carpeta de vistas (por ejemplo con XAMPP o un servidor estático) y abrir
-   `views/login.html`.
-
-Documentación interactiva de la API disponible en `http://127.0.0.1:8000/docs`.
+Documentación interactiva: `http://127.0.0.1:8000/docs`.
+Healthcheck: `http://127.0.0.1:8000/health`.
 
 ## Seguridad
 
