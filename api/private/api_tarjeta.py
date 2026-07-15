@@ -56,13 +56,15 @@ def obtener_tarjeta(datos_tarjeta=Depends(verificar_token_t), db: Session = Depe
     if not datos_tarjeta:  # Asegúrate de que los datos del token estén presentes
         raise HTTPException(status_code=401, detail="Token inválido o expirado.")
     
-    balance_db = db.query(Tarjeta).filter(Tarjeta.id_tarjeta == datos_tarjeta.get('id_tarjeta')).first()
+    tarjeta_db = db.query(Tarjeta).filter(Tarjeta.id_tarjeta == datos_tarjeta.get('id_tarjeta')).first()
+    if not tarjeta_db:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada.")
 
     return {
         "estado": 1,
-        "pan": datos_tarjeta.get('pan'),  # Accede como un diccionario
-        "fecha_creacion": datos_tarjeta.get('fecha_creacion'),
-        "cvc": datos_tarjeta.get('cvc'),
+        "pan": tarjeta_db.pan,
+        "fecha_creacion": tarjeta_db.fecha_creacion,
+        "cvc": tarjeta_db.cvc,
         "nombre": datos_tarjeta.get('nombres'),
-        "balance": float(balance_db.balance)
+        "balance": float(tarjeta_db.balance)
     }

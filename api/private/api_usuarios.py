@@ -109,9 +109,6 @@ def login_usuario(body: LoginRequest, db: Session = Depends(get_db)):
 
     payload_tarjeta = {
         "id_tarjeta": tarjeta.id_tarjeta,
-        "pan": tarjeta.pan,
-        "fecha_creacion": tarjeta.fecha_creacion.isoformat(),
-        "cvc": tarjeta.cvc,
         "nombres": usuario.nombres + " " + usuario.apellidos,
         "exp": expira
     }

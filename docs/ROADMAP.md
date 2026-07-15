@@ -27,13 +27,14 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 ## Fase 1 - Backend profesional (1-2 semanas)
 
-- [ ] Reorganizar `api/` -> `backend/app/` (mover, no reescribir la lógica).
-- [ ] `core/config.py` con Pydantic Settings.
-- [ ] Unificar `declarative_base` y declarar FKs/relaciones.
-- [ ] Introducir Alembic; migración inicial desde el esquema corregido.
+- [x] Reorganizar `api/` -> `backend/app/` (copiado; `api/` legacy se mantiene temporalmente).
+- [x] `core/config.py` con Pydantic Settings.
+- [x] Unificar `declarative_base` y declarar Base única.
+- [x] Introducir Alembic (esqueleto listo; falta migración inicial generada).
 - [ ] Estandarizar respuestas y errores; usar `response_model`.
 - [ ] Tests con pytest: login, crear transacción, decode QR (válido/ inválido).
 - [ ] `ruff` configurado.
+- [x] Docker Compose solo para MySQL (siguiente paso incremental).
 
 **Done:** backend testeable, con migraciones versionadas y configuración por entorno.
 

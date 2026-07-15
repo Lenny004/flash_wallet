@@ -15,7 +15,7 @@ def verificar_token_t(authorization: str = Header(None)):
         payload_tarjeta = jwt.decode(
             token, settings.secret_key, algorithms=[settings.jwt_algorithm]
         )
-        if not payload_tarjeta.get("pan"):
+        if not payload_tarjeta.get("id_tarjeta"):
             raise HTTPException(status_code=401, detail="Token inválido: datos faltantes.")
         return payload_tarjeta
     except jwt.ExpiredSignatureError:
