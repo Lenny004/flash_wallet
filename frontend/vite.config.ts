@@ -22,6 +22,7 @@ export default defineConfig({
         main: resolve(root, 'index.html'),
         login: resolve(root, 'pages/login.html'),
         registro: resolve(root, 'pages/registro.html'),
+        dashboard: resolve(root, 'pages/dashboard.html'),
       },
     },
   },
