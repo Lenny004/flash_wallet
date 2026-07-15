@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
         pass
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(title="Flash Wallet", version="0.2.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

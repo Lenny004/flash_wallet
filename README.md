@@ -1,11 +1,13 @@
 # Flash
 
+**Versión: 0.2.0 (develop)**
+
 Billetera digital con tarjeta virtual para el pago de servicios (telecomunicaciones y
 utilities) mediante escaneo de códigos QR, recargas de saldo, transacciones recurrentes
 y facturación.
 
-> Estado: prototipo funcional en proceso de profesionalización. Consulta el plan completo
-> en [docs/](docs/README.md).
+> Estado: profesionalización en curso (Fases 0–4 completadas en `develop`). Consulta el
+> plan completo en [docs/](docs/README.md) y el historial en [CHANGELOG.md](CHANGELOG.md).
 
 ## Características
 
@@ -99,6 +101,7 @@ que deben moverse a `.env` y rotarse, y endpoints que requieren autenticación.
 - [Docker](docs/DOCKER.md)
 - [GitHub](docs/GITHUB.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Changelog](CHANGELOG.md)
 - [Referencias](docs/REFERENCIAS.md)
 
 ## Licencia
