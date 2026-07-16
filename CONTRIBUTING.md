@@ -3,11 +3,19 @@
 Gracias por colaborar. Flash está en proceso de profesionalización; sigue estas
 convenciones para mantener el repo ordenado.
 
-## Ramas
+## Ramas y flujo
 
-- **`develop`** — rama de integración y trabajo diario.
-- **`feature/<nombre>`**, **`fix/<nombre>`**, **`chore/<nombre>`** — ramas cortas desde `develop`.
-- **`main`** — solo releases estables vía pull request. **No hagas push directo a `main`.**
+| Rama | Uso |
+|------|-----|
+| `develop` | Integración y trabajo diario |
+| `feature/*`, `fix/*`, `chore/*` | Ramas cortas desde `develop` |
+| `main` | Releases estables — **sin push directo** |
+
+1. Crea tu rama desde `develop` (`feature/mi-cambio`, etc.).
+2. Haz PR hacia `develop` e integra ahí.
+3. Para un **release**, abre PR `develop` → `main`: [compare en GitHub](https://github.com/Lenny004/flash_wallet/compare/main...develop?expand=1).
+
+Detalle de comandos y `gh auth login` en [docs/GITHUB.md](docs/GITHUB.md).
 
 ## Commits (gitmoji)
 
