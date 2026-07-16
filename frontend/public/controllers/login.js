@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
 document.getElementById('login_form').addEventListener('submit', function (event) {
     event.preventDefault(); // Prevenir el recargado de página
     // Obtener los valores del formulario
-    const usuario = document.getElementById('usuario').value.trim();
+    const usuario = document.getElementById('usuario').value;
     const contra = document.getElementById('contra').value;
     // Hacer la petición al servidor
     fetch(API_LOGIN + 'login', {

@@ -134,15 +134,31 @@ formularioRegistro?.addEventListener('submit', (evento) => {
 });
 
 const botonTogglePassword = document.getElementById('togglePassword');
-botonTogglePassword?.addEventListener('click', function (this: HTMLElement) {
-  const campoPassword = document.getElementById('contra') as HTMLInputElement;
-  const iconoToggle = this.querySelector('img');
 
-  if (campoPassword.type === 'password') {
-    campoPassword.type = 'text';
-    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ver.png');
-  } else {
-    campoPassword.type = 'password';
-    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ocultar.png');
+function alternarVisibilidadContrasena(): void {
+  const campoPassword = document.getElementById('contra') as HTMLInputElement | null;
+  const iconoToggle = botonTogglePassword?.querySelector('img');
+  if (!campoPassword) return;
+
+  const mostrar = campoPassword.type === 'password';
+  campoPassword.type = mostrar ? 'text' : 'password';
+  if (iconoToggle) {
+    iconoToggle.setAttribute(
+      'src',
+      mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
+    );
+  }
+}
+
+botonTogglePassword?.addEventListener('click', (evento) => {
+  evento.preventDefault();
+  evento.stopPropagation();
+  alternarVisibilidadContrasena();
+});
+
+botonTogglePassword?.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Enter' || evento.key === ' ') {
+    evento.preventDefault();
+    alternarVisibilidadContrasena();
   }
 });

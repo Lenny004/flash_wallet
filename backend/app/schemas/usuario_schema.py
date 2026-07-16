@@ -17,9 +17,9 @@ class UsuarioCreate(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    """Credenciales para inicio de sesión (usuario o email + contraseña)."""
+    """Credenciales para inicio de sesión."""
 
-    usuario: str = Field(..., max_length=50, description="Nombre de usuario o correo electrónico")
+    usuario: str = Field(..., max_length=50)
     contra: str = Field(..., min_length=6)
 
 

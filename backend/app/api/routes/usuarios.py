@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from passlib.context import CryptContext
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_U
@@ -93,12 +92,7 @@ def login_usuario(request: Request, body: LoginRequest, db: Session = Depends(ge
     ip_cliente = request.client.host if request.client else "unknown"
     rate_limit(f"login:{ip_cliente}", limit=5, window=60)
 
-    identificador = body.usuario.strip()
-    usuario_encontrado = (
-        db.query(Usuario)
-        .filter(or_(Usuario.usuario == identificador, Usuario.email == identificador))
-        .first()
-    )
+    usuario_encontrado = db.query(Usuario).filter(Usuario.usuario == body.usuario).first()
 
     if not usuario_encontrado or not pwd_context.verify(body.contra, usuario_encontrado.contra):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos.")
