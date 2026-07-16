@@ -42,7 +42,7 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 - [x] Crear scaffold `frontend/` con Vite + TypeScript (`apiFetch`, proxy `/api`).
 - [x] Copiar HTML/CSS/controllers/resources a `frontend/public/` (servidos por Vite).
-- [ ] Unificar `controllers/*.js` en módulos ES.
+- [x] Unificar páginas de negocio en módulos ES (`frontend/src/pages/*.ts`).
 - [x] `src/api/client.ts` con `baseURL` desde `VITE_API_URL`.
 - [x] Proxy `/api` en `vite.config` hacia `localhost:8000`.
 - [x] Guards de sesión por página (`requireUserSession` / `requireCardSession` en `src/lib/auth.ts`).
@@ -80,8 +80,9 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 
 ## Prioridades inmediatas (top 5)
 
-1. Unificar `controllers/*.js` en módulos ES (import/export, sin globals duplicados).
-2. [x] Eliminar legacy (movido a `legacy/`); borrar `legacy/` en v0.3.0 cuando Vite cubra todo el flujo.
+1. [x] Unificar páginas de negocio en módulos ES Vite.
+2. [x] Eliminar legacy (movido a `legacy/`); borrar `legacy/` en v0.3.0 cuando ya no se necesite.
 3. Desplegar en cloud: API (Railway/Render/Fly.io) + frontend estático (Vercel/Netlify) con HTTPS.
 4. [x] Blacklist de refresh tokens en logout (revocación server-side, no solo `localStorage.clear`).
 5. [x] Guards de sesión unificados en todas las páginas (`requireUserSession` / `requireCardSession`).
+6. Blacklist/rate-limit en Redis si hay más de una réplica de API.
