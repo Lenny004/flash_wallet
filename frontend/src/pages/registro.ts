@@ -132,32 +132,4 @@ formularioRegistro?.addEventListener('submit', (evento) => {
       mostrarAlerta(2, error.message);
     });
 });
-
-function alternarVisibilidadContrasena(): void {
-  const campoPassword = document.getElementById('contra') as HTMLInputElement | null;
-  const botonTogglePassword = document.getElementById('togglePassword');
-  const iconoToggle = botonTogglePassword?.querySelector('img');
-  if (!campoPassword || !botonTogglePassword || !iconoToggle) return;
-
-  const mostrar = campoPassword.type === 'password';
-  campoPassword.setAttribute('type', mostrar ? 'text' : 'password');
-  iconoToggle.setAttribute(
-    'src',
-    mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
-  );
-  botonTogglePassword.setAttribute('aria-pressed', mostrar ? 'true' : 'false');
-  botonTogglePassword.setAttribute(
-    'aria-label',
-    mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña',
-  );
-}
-
-const botonTogglePassword = document.getElementById('togglePassword');
-// onclick (no addEventListener) evita listeners duplicados con HMR de Vite
-if (botonTogglePassword) {
-  botonTogglePassword.onclick = (evento) => {
-    evento.preventDefault();
-    evento.stopPropagation();
-    alternarVisibilidadContrasena();
-  };
-}
+// Visibilidad de contraseña: /controllers/toggle_password.js

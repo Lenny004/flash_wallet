@@ -35,7 +35,7 @@
                 <label for="contra" class="label">Contraseña <span class="required">*</span></label>
                 <div class="password-field">
                     <input type="password" class="input" id="contra" name="contra" maxlength="50" required>
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña" aria-pressed="false">
+                    <button type="button" class="toggle-password" id="togglePassword" data-toggle-password="#contra" aria-label="Mostrar contraseña" aria-pressed="false">
                         <img class="toggle-password__icon" src="/resources/icons/ocultar.png" alt="">
                     </button>
                 </div>
@@ -51,6 +51,7 @@
     </main>
     <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
     <script src="/controllers/config.js"></script>
+    <script src="/controllers/toggle_password.js"></script>
     <script type="module" src="/src/pages/registro.ts"></script>
 </body>
 
