@@ -133,32 +133,31 @@ formularioRegistro?.addEventListener('submit', (evento) => {
     });
 });
 
-const botonTogglePassword = document.getElementById('togglePassword');
-
 function alternarVisibilidadContrasena(): void {
   const campoPassword = document.getElementById('contra') as HTMLInputElement | null;
+  const botonTogglePassword = document.getElementById('togglePassword');
   const iconoToggle = botonTogglePassword?.querySelector('img');
-  if (!campoPassword) return;
+  if (!campoPassword || !botonTogglePassword || !iconoToggle) return;
 
   const mostrar = campoPassword.type === 'password';
-  campoPassword.type = mostrar ? 'text' : 'password';
-  if (iconoToggle) {
-    iconoToggle.setAttribute(
-      'src',
-      mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
-    );
-  }
+  campoPassword.setAttribute('type', mostrar ? 'text' : 'password');
+  iconoToggle.setAttribute(
+    'src',
+    mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
+  );
+  botonTogglePassword.setAttribute('aria-pressed', mostrar ? 'true' : 'false');
+  botonTogglePassword.setAttribute(
+    'aria-label',
+    mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña',
+  );
 }
 
-botonTogglePassword?.addEventListener('click', (evento) => {
-  evento.preventDefault();
-  evento.stopPropagation();
-  alternarVisibilidadContrasena();
-});
-
-botonTogglePassword?.addEventListener('keydown', (evento) => {
-  if (evento.key === 'Enter' || evento.key === ' ') {
+const botonTogglePassword = document.getElementById('togglePassword');
+// onclick (no addEventListener) evita listeners duplicados con HMR de Vite
+if (botonTogglePassword) {
+  botonTogglePassword.onclick = (evento) => {
     evento.preventDefault();
+    evento.stopPropagation();
     alternarVisibilidadContrasena();
-  }
-});
+  };
+}

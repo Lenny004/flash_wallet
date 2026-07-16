@@ -167,15 +167,21 @@ formularioLogin?.addEventListener('submit', (evento) => {
 });
 
 const botonTogglePassword = document.getElementById('togglePassword');
-botonTogglePassword?.addEventListener('click', function (this: HTMLElement) {
-  const campoPassword = document.getElementById('contra') as HTMLInputElement;
-  const iconoToggle = this.querySelector('img');
+botonTogglePassword && (botonTogglePassword.onclick = function (evento) {
+  evento.preventDefault();
+  evento.stopPropagation();
 
-  if (campoPassword.type === 'password') {
-    campoPassword.type = 'text';
-    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ver.png');
-  } else {
-    campoPassword.type = 'password';
-    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ocultar.png');
+  const campoPassword = document.getElementById('contra') as HTMLInputElement | null;
+  if (!campoPassword || !botonTogglePassword) return;
+
+  const mostrar = campoPassword.type === 'password';
+  campoPassword.type = mostrar ? 'text' : 'password';
+
+  const iconoToggle = botonTogglePassword.querySelector('img');
+  if (iconoToggle) {
+    iconoToggle.setAttribute(
+      'src',
+      mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
+    );
   }
 });

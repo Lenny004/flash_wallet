@@ -489,44 +489,45 @@ nav .navbar a img {
 }
 
 .password-field {
-    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 0.4rem;
     width: 100%;
     margin: 0.6rem 0 1.2rem;
 }
 
 .password-field .input {
     margin: 0;
-    padding-right: 4.8rem;
-    width: 100%;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
 }
 
 .password-field .toggle-password {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    position: static;
+    flex: 0 0 4.8rem;
     width: 4.8rem;
     margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     cursor: pointer;
-    opacity: 0.85;
-    z-index: 5;
-    pointer-events: auto;
-    transition: opacity 0.2s var(--ease);
+    padding: 0;
 }
 
 .password-field .toggle-password:hover {
-    opacity: 1;
+    background: var(--surface-strong);
 }
 
-.password-field .toggle-password img {
+.password-field .toggle-password__icon {
     width: 2.4rem;
     height: 2.4rem;
     display: block;
+    /* Los PNG traen fondo negro: lo neutraliza sobre el vidrio claro */
+    mix-blend-mode: multiply;
     pointer-events: none;
 }
 

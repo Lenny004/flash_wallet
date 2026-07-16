@@ -39,11 +39,10 @@
                     required>
                 <label for="contra" class="label">Contraseña <span class="required">*</span></label>
                 <div class="password-field">
-                    <input type="password" class="input" id="contra" name="contra" maxlength="50"
-                        required>
-                    <span class="toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Mostrar u ocultar contraseña">
-                        <img src="/resources/icons/ocultar.png" alt="">
-                    </span>
+                    <input type="password" class="input" id="contra" name="contra" maxlength="50" required>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <img class="toggle-password__icon" src="/resources/icons/ocultar.png" alt="">
+                    </button>
                 </div>
                 <label for="direccion" class="label">Dirección <span class="required">*</span></label>
                 <input type="text" class="input" id="direccion" name="direccion" placeholder="Address" maxlength="150"
