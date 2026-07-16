@@ -25,7 +25,7 @@ y facturación.
 |------|------------|
 | Backend | FastAPI + SQLAlchemy + PyJWT + Pydantic (`backend/app/`) |
 | Base de datos | MySQL 8 |
-| Frontend | Vite + TypeScript (`frontend/`); HTML/CSS/JS legacy en transición |
+| Frontend | Vite + TypeScript (`frontend/`) |
 
 Detalle y evolución del stack en [docs/STACK.md](docs/STACK.md).
 
@@ -34,12 +34,8 @@ Detalle y evolución del stack en [docs/STACK.md](docs/STACK.md).
 ```
 Flash/
 ├── backend/        # Backend activo (FastAPI, modelos, schemas, tests)
-├── frontend/       # Frontend activo (Vite + páginas HTML estáticas)
-├── api/            # Legacy — ver api/DEPRECATED.md (se elimina en v0.3.0)
-├── views/          # Legacy (XAMPP)
-├── controllers/    # Legacy (XAMPP)
-├── css/            # Legacy (XAMPP)
-├── resources/      # Librerías de terceros
+├── frontend/       # Frontend activo (Vite + TypeScript + assets en public/)
+├── legacy/         # Archivo histórico (XAMPP + api/ original) — ver legacy/README.md
 ├── docs/           # Documentación y plan de escalado
 └── dbflash.sql     # Esquema y datos semilla
 ```
@@ -73,18 +69,21 @@ npm run dev
 
 Abrir [http://localhost:5173](http://localhost:5173) — redirige a `/pages/login.html`.
 
-### Legacy (`api/` + XAMPP)
+Documentación interactiva de la API: `http://127.0.0.1:8000/docs`.
+Healthcheck: `http://127.0.0.1:8000/health`.
 
-Solo para compatibilidad durante la migración. Ver [api/DEPRECATED.md](api/DEPRECATED.md).
+### Docker (opcional)
 
 ```bash
-cd api
-pip install -r ../requirements.txt
-uvicorn api:app --reload
+docker compose up
 ```
 
-Documentación interactiva: `http://127.0.0.1:8000/docs`.
-Healthcheck: `http://127.0.0.1:8000/health`.
+Ver [docs/DOCKER.md](docs/DOCKER.md). Frontend en `http://localhost:8080`.
+
+### Código legacy
+
+El prototipo original (XAMPP, `api/` monolítico) está en [`legacy/`](legacy/README.md) solo como
+referencia histórica. No forma parte del stack activo ni de Docker/Vite.
 
 ## Seguridad
 

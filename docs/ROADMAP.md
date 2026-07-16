@@ -45,13 +45,13 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 - [ ] Unificar `controllers/*.js` en módulos ES.
 - [x] `src/api/client.ts` con `baseURL` desde `VITE_API_URL`.
 - [x] Proxy `/api` en `vite.config` hacia `localhost:8000`.
-- [ ] Guards de sesión por página (online.js ya valida token).
+- [x] Guards de sesión por página (`requireUserSession` / `requireCardSession` en `src/lib/auth.ts`).
 
 ## Fase 3 - Docker end-to-end (1 semana)
 
 - [x] `docker-compose.yml`: `db` + `api` + `frontend` (nginx).
 - [x] `Dockerfile` para backend y frontend.
-- [~] `.github/workflows/ci.yml`: lint + pytest + build frontend + build Docker opcional (api + frontend).
+- [x] `.github/workflows/ci.yml`: lint + pytest + build frontend + build Docker (api + frontend).
 - [x] Endpoint `/health` + healthcheck del servicio `api`.
 
 **Done:** `docker compose up` levanta todo; CI verde en cada PR.
@@ -81,7 +81,7 @@ Cero cambios funcionales; el objetivo es poder publicar con seguridad.
 ## Prioridades inmediatas (top 5)
 
 1. Unificar `controllers/*.js` en módulos ES (import/export, sin globals duplicados).
-2. Eliminar carpetas legacy (`api/`, `views/`, `controllers/`, `css/`) cuando Vite cubra todo el flujo.
+2. [x] Eliminar legacy (movido a `legacy/`); borrar `legacy/` en v0.3.0 cuando Vite cubra todo el flujo.
 3. Desplegar en cloud: API (Railway/Render/Fly.io) + frontend estático (Vercel/Netlify) con HTTPS.
 4. [x] Blacklist de refresh tokens en logout (revocación server-side, no solo `localStorage.clear`).
-5. Guards de sesión unificados en todas las páginas (hoy solo `online.js` valida token de forma consistente).
+5. [x] Guards de sesión unificados en todas las páginas (`requireUserSession` / `requireCardSession`).

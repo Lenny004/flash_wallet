@@ -67,7 +67,7 @@ cd frontend && npm run build
 
 ## Dónde escribir código
 
-- **Backend activo:** `backend/app/` — no añadas lógica nueva en `api/` (legacy, ver `api/DEPRECATED.md`).
+- **Backend activo:** `backend/app/` — no añadas lógica nueva en `legacy/` (archivo histórico, ver [legacy/README.md](../legacy/README.md)).
 - **Frontend activo:** `frontend/`.
 
 Más contexto en [docs/GITHUB.md](docs/GITHUB.md) y [docs/ROADMAP.md](docs/ROADMAP.md).
