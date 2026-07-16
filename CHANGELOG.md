@@ -9,24 +9,38 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Guards de sesión unificados (`requireUserSession` / `requireCardSession`) en páginas ES autenticadas.
+- `legacy/`: prototipo XAMPP (`api/`, `views/`, `controllers/`, etc.) archivado como referencia histórica.
+- Auditoría `docs/DEPLOY_READYNESS.md` (staging: sí condicionado).
+- Todas las páginas de negocio migradas a módulos Vite TypeScript.
+- CI: builds Docker de API y frontend fallan el pipeline si el Dockerfile está roto.
+- `.dockerignore` y `docker-compose.override.yml.example` para hot reload.
+
+### Añadido (sesión anterior)
+
 - Blacklist de refresh tokens en logout (`POST /api/usuarios/logout`): revocación server-side por `jti` en memoria; `POST /api/usuarios/refresh` rechaza tokens revocados.
 - Rate limiting en memoria (`app/core/rate_limit.py`): login (5 req/min por IP) y decode QR (20 req/min por `id_tarjeta`).
 - `GET /api/servicios/` autenticado con `token_usuario` (`response_model`); guard 401 sin token.
 - Tests ampliados: movimientos y crear transacción sin auth, logout/refresh revocado, rate limit unitario, QR intents (firma, TTL, campos requeridos).
-- Piloto de migración Vite: `login` como módulo ES (`frontend/src/pages/login.ts`).
 - Enums de estado y `ForeignKey` explícitas en el ORM.
 
 ### Cambiado
 
-- `escanear.js`: la transacción se crea solo con el `intent` firmado devuelto por `POST /api/decode_qr/` (el cliente no reenvía montos editables sin `exp`/`sig`).
+- Stack activo documentado como `backend/` + `frontend/`; legacy fuera de la raíz.
+- `escanear.js` / `escanear_servicio.ts`: la transacción se crea solo con el `intent` firmado.
 - Scaffolding TypeScript (`frontend/src/lib/auth.ts`, `src/api/client.ts`) como fuente de verdad para `apiFetchAuth` y refresh.
+- Dockerfile API: `libzbar0` + Alembic en la imagen; CVC enmascarado en `GET /api/tarjeta/readOne`.
 
 ### Documentado
 
-- `docs/SEGURIDAD.md`: sección sobre rate limit, payment intents QR y blacklist de refresh.
-- Dashboard y escanear revisados: el dashboard no lista servicios (historial/tarjeta/movimientos); escanear obtiene el servicio del QR (sin `<select>` en `escanear_servicio.html`), por lo que no se añade preload de `/api/servicios/` en esas vistas.
+- `docs/SEGURIDAD.md`: rate limit, payment intents QR y blacklist de refresh.
+- Docstrings/JSDoc en backend crítico y páginas ES.
 
 ### Planeado
+
+- Blacklist de refresh en Redis o DB para multi-réplica.
+- Deploy cloud con HTTPS.
+- Eliminar carpeta `legacy/` en v0.3.0 si ya no se necesita.
 
 - Unificación de `controllers/*.js` en módulos ES.
 - Eliminación de carpetas legacy (`api/`, `views/`, `controllers/`, `css/`).
