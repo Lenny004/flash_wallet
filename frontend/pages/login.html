@@ -20,12 +20,12 @@
             <form id="login_form" action="post" class="form" autocomplete="off">
                 <div class="input-group input">
                     <label for="usuario"><img src="/resources/icons/mail_red.png" alt="Correo"></label>
-                    <input type="text" class="input" id="usuario" name="usuario" placeholder="correo@gmail.com" maxlength="50" required>
+                    <input type="text" class="input" id="usuario" name="usuario" placeholder="correo@gmail.com *" maxlength="50" required aria-label="Correo o usuario *">
                 </div>
                 <div class="input-group input">
                     <label for="contra"><img src="/resources/icons/password_red.png" alt="Contraseña"></label>
-                    <input type="password" class="input" id="contra" name="contra" maxlength="50"
-                    required>
+                    <input type="password" class="input" id="contra" name="contra" placeholder="Contraseña *" maxlength="50"
+                    required aria-label="Contraseña *">
                     <span class="toggle-password" id="togglePassword">
                         <label for="contra"><img src="/resources/icons/ocultar.png" alt="Contraseña"></label>
                     </span>

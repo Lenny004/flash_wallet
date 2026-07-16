@@ -27,14 +27,22 @@
         </div>
         <div class="form-container">
             <form id="recarga_form" action="post" class="form" autocomplete="off">
+                <label for="numero_t" class="label">Número de tarjeta <span class="required">*</span></label>
                 <input type="text" class="input" placeholder="Número de tarjeta de crédito o débito" id="numero_t" name="numero_t" maxlength="19" required>
                 <div class="two-columns">
-                    <input type="date" placeholder="Vencimiento" class="input" id="vencimiento" name="vencimiento" maxlength="50" required>
-                    <input type="number" placeholder="CVC" class="input" id="cvc" name="cvc" maxlength="4" required>
+                    <div>
+                        <label for="vencimiento" class="label">Vencimiento <span class="required">*</span></label>
+                        <input type="date" placeholder="Vencimiento" class="input" id="vencimiento" name="vencimiento" maxlength="50" required>
+                    </div>
+                    <div>
+                        <label for="cvc" class="label">CVC <span class="required">*</span></label>
+                        <input type="number" placeholder="CVC" class="input" id="cvc" name="cvc" maxlength="4" required>
+                    </div>
                 </div>
+                <label for="nombre_titular" class="label">Nombre del titular <span class="required">*</span></label>
                 <input type="text" placeholder="Nombre del titular" class="input" id="nombre_titular" name="nombre_titular" maxlength="50" required>
                 <div class="two-columns">
-                    <label for="cantidad" class="label">Cantidad a recargar</label>
+                    <label for="monto_agregado" class="label">Cantidad a recargar <span class="required">*</span></label>
                     <input type="number" placeholder="$$$" class="input" id="monto_agregado" name="monto_agregado" maxlength="4" required>
                 </div>
                 <input type="text" class="input" id="minima" name="minima" required disabled>

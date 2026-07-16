@@ -1,17 +1,8 @@
-@font-face {
-    font-family: Inter;
-    font-style: normal;
-    src: url('/fonts/Inter.ttc');
-    /*ltr:El contenido, texto y otros elementos fluyen de izquierda a derecha.*/
-    direction: ltr;
-    line-height: 1.6;
-    letter-spacing: 0.3rem;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-}
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap');
 
-body{
-    font-family: Inter;
+body {
+    font-family: 'Sora', sans-serif;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
