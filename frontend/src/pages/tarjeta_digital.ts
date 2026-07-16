@@ -13,6 +13,43 @@ interface DatosTarjeta {
   cvc: string;
 }
 
+/** Formatea el PAN en grupos de 4 dígitos. */
+function formatearPan(pan: string): string {
+  const digitos = String(pan).replace(/\D/g, '');
+  return digitos.replace(/(\d{4})(?=\d)/g, '$1 ').trim() || pan;
+}
+
+/** Plantilla HTML de la cara de la tarjeta digital. */
+function plantillaTarjetaDigital(opciones: {
+  pan: string;
+  fecha: string;
+  cvc: string;
+  titular: string;
+}): string {
+  return `
+    <img
+      class="tarjeta_digital__img"
+      src="/resources/imgs/Tarjeta.png"
+      alt=""
+      aria-hidden="true"
+      draggable="false"
+    />
+    <div class="tarjeta_digital__face">
+      <p class="tarjeta_digital__pan">${formatearPan(opciones.pan)}</p>
+      <div class="tarjeta_digital__row tarjeta_digital__row--meta">
+        <div class="tarjeta_digital__field">
+          <span class="tarjeta_digital__label">Desde</span>
+          <span class="tarjeta_digital__value">${opciones.fecha}</span>
+        </div>
+        <div class="tarjeta_digital__field">
+          <span class="tarjeta_digital__label">CVC</span>
+          <span class="tarjeta_digital__value">${opciones.cvc}</span>
+        </div>
+      </div>
+      <p class="tarjeta_digital__holder">${opciones.titular}</p>
+    </div>`;
+}
+
 /**
  * Muestra los datos de la tarjeta digital recién creada desde localStorage.
  * Lee `nuevo_usuario` y `tarjeta` guardados tras el registro.
@@ -26,13 +63,15 @@ function mostrarTarjetaDigital(): void {
   ) as DatosTarjeta | null;
 
   if (datosUsuario && datosTarjeta) {
-    const htmlTarjeta = `
-            <p><b>${datosTarjeta.pan}</b></p>
-            <p><b>DESDE: ${datosTarjeta.fecha_creacion}</b></p>
-            <p><b>CVC: ${datosTarjeta.cvc}</b></p>
-            <p><b>${datosUsuario.nombres} ${datosUsuario.apellidos}</b></p>`;
     const contenedorTarjeta = document.getElementById('datos_tarjeta');
-    if (contenedorTarjeta) contenedorTarjeta.innerHTML = htmlTarjeta;
+    if (contenedorTarjeta) {
+      contenedorTarjeta.innerHTML = plantillaTarjetaDigital({
+        pan: datosTarjeta.pan,
+        fecha: datosTarjeta.fecha_creacion,
+        cvc: datosTarjeta.cvc,
+        titular: `${datosUsuario.nombres} ${datosUsuario.apellidos}`,
+      });
+    }
   } else {
     console.error('No se encontraron los datos en localStorage');
   }

@@ -11,19 +11,17 @@
 </head>
 
 <body>
-    <main class="dashboard">
+    <main class="dashboard tarjeta-digital-page">
         <div class="encabezado">
             <h1 class="titulo">¡Se ha creado tu tarjeta Flash!</h1>
         </div>
-        <p class="nota">
+        <p class="nota nota--compact">
             <b>
-                IMPORTANTE: Podrás visualizar luego estos datos en el menú del sitio, luego de ingresar sesión
+                IMPORTANTE: Podrás visualizar luego estos datos en el menú del sitio, luego de iniciar sesión.
             </b>
         </p>
-        <div class="tarjeta_digital" id="datos_tarjeta">
-            
-        </div>
-        <button class="btn primary-button" onclick="loginContinue()">Continuar</button>
+        <div class="tarjeta_digital" id="datos_tarjeta" role="img" aria-label="Tarjeta digital Flash"></div>
+        <button type="button" class="btn primary-button" onclick="loginContinue()">Continuar</button>
     </main>
     <script type="text/javascript" src="/controllers/config.js"></script>
     <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>

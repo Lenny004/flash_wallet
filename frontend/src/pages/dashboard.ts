@@ -307,11 +307,32 @@ function cargarDatosTarjeta(): void {
     })
     .then((datos: RespuestaTarjeta) => {
       if (datos.estado) {
+        const panFormateado = String(datos.pan)
+          .replace(/\D/g, '')
+          .replace(/(\d{4})(?=\d)/g, '$1 ')
+          .trim() || datos.pan;
         const htmlDatosTarjeta = `
-                <p><b>${datos.pan}</b></p>
-                <p><b>DESDE: ${datos.fecha_creacion}</b></p>
-                <p><b>CVC: ${datos.cvc}</b></p>
-                <p><b>${datos.nombre}</b></p>`;
+          <img
+            class="tarjeta_digital__img"
+            src="/resources/imgs/Tarjeta.png"
+            alt=""
+            aria-hidden="true"
+            draggable="false"
+          />
+          <div class="tarjeta_digital__face">
+            <p class="tarjeta_digital__pan">${panFormateado}</p>
+            <div class="tarjeta_digital__row tarjeta_digital__row--meta">
+              <div class="tarjeta_digital__field">
+                <span class="tarjeta_digital__label">Desde</span>
+                <span class="tarjeta_digital__value">${datos.fecha_creacion}</span>
+              </div>
+              <div class="tarjeta_digital__field">
+                <span class="tarjeta_digital__label">CVC</span>
+                <span class="tarjeta_digital__value">${datos.cvc}</span>
+              </div>
+            </div>
+            <p class="tarjeta_digital__holder">${datos.nombre}</p>
+          </div>`;
         const contenedorTarjeta = document.getElementById('datos_tarjeta');
         if (contenedorTarjeta) {
           contenedorTarjeta.innerHTML = htmlDatosTarjeta;

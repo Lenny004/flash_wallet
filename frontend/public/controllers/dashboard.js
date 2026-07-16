@@ -196,10 +196,29 @@ function datosTarjeta() {
         if (response.estado) {
             let content, content2 = "";
             content = `
-                <p><b>${response.pan}</b></p>
-                <p><b>DESDE: ${response.fecha_creacion}</b></p>
-                <p><b>CVC: ${response.cvc}</b></p>
-                <p><b>${response.nombre}</b></p>`;
+          <div class="tarjeta_digital__glow" aria-hidden="true"></div>
+          <div class="tarjeta_digital__bolt" aria-hidden="true"></div>
+          <div class="tarjeta_digital__face">
+            <div class="tarjeta_digital__row tarjeta_digital__row--top">
+              <span class="tarjeta_digital__brand">FLASH</span>
+              <span class="tarjeta_digital__network">VISA</span>
+            </div>
+            <div class="tarjeta_digital__chip" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <p class="tarjeta_digital__pan">${String(response.pan).replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').trim() || response.pan}</p>
+            <div class="tarjeta_digital__row tarjeta_digital__row--meta">
+              <div class="tarjeta_digital__field">
+                <span class="tarjeta_digital__label">Desde</span>
+                <span class="tarjeta_digital__value">${response.fecha_creacion}</span>
+              </div>
+              <div class="tarjeta_digital__field">
+                <span class="tarjeta_digital__label">CVC</span>
+                <span class="tarjeta_digital__value">${response.cvc}</span>
+              </div>
+            </div>
+            <p class="tarjeta_digital__holder">${response.nombre}</p>
+          </div>`;
             document.getElementById('datos_tarjeta').innerHTML = content;
             content2 =
             `<p>Saldo en tu wallet</p>
