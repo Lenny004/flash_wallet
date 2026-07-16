@@ -7,17 +7,23 @@ export type AuthType = 'tarjeta' | 'usuario';
 
 /**
  * Obtiene la URL base de la API.
- * Prioriza `FLASH_API_BASE` en `window` (legacy) y luego `VITE_API_URL`.
- * @returns URL base de la API, o cadena vacía si no está configurada.
+ * En desarrollo Vite: cadena vacía → rutas relativas `/api/...` (proxy a :8000).
+ * En Docker/nginx: también vacío (mismo origen).
+ * Solo usa URL absoluta si VITE_API_URL o FLASH_API_BASE están definidas y no vacías.
  */
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
     const baseUrlLegacy = (window as Window & { FLASH_API_BASE?: string }).FLASH_API_BASE;
-    if (baseUrlLegacy !== undefined) {
-      return baseUrlLegacy || '';
+    // Solo respetar FLASH_API_BASE si tiene valor (evita forzar absoluto por error)
+    if (typeof baseUrlLegacy === 'string' && baseUrlLegacy.trim() !== '') {
+      return baseUrlLegacy.replace(/\/$/, '');
     }
   }
-  return import.meta.env.VITE_API_URL ?? '';
+  const desdeVite = import.meta.env.VITE_API_URL;
+  if (typeof desdeVite === 'string' && desdeVite.trim() !== '') {
+    return desdeVite.replace(/\/$/, '');
+  }
+  return '';
 }
 
 /** Redirige a login si no hay access token de usuario (páginas autenticadas). */
