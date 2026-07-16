@@ -2,7 +2,10 @@
  * @file Página de perfil de usuario: lectura, edición y actualización de datos personales.
  */
 
-import { apiFetchAuth, getApiBase } from '../lib/auth';
+import { apiFetchAuth, getApiBase, requireUserSession } from '../lib/auth';
+
+/** Guard de sesión: requiere token de usuario. */
+const sesionOk = requireUserSession();
 
 declare function sweetAlert(type: 1 | 2 | 3 | 4 | 5, text: string, url?: string | null): void;
 
@@ -105,11 +108,13 @@ declare global {
 window.habilitarEdit = habilitarEdit;
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!sesionOk) return;
   cargarDatos();
 });
 
 const formularioPerfil = document.getElementById('perfil_form');
 formularioPerfil?.addEventListener('submit', async (evento) => {
+  if (!sesionOk) return;
   evento.preventDefault();
 
   const botonEnviar = document.getElementById('btnUpdate') as HTMLInputElement;

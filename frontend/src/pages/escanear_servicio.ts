@@ -2,7 +2,10 @@
  * @file Página de escaneo de servicio: decodifica QR y crea transacciones de pago.
  */
 
-import { apiFetchAuth, getApiBase } from '../lib/auth';
+import { apiFetchAuth, getApiBase, requireCardSession } from '../lib/auth';
+
+/** Guard de sesión: requiere token de tarjeta. */
+const sesionOk = requireCardSession();
 
 declare function sweetAlert(type: 1 | 2 | 3 | 4 | 5, text: string, url?: string | null): void;
 
@@ -170,6 +173,7 @@ window.vaciarCampos = vaciarCampos;
 
 const formularioFactura = document.getElementById('factura_form');
 formularioFactura?.addEventListener('submit', (evento) => {
+  if (!sesionOk) return;
   evento.preventDefault();
   if (!localStorage.getItem('token_tarjeta')) {
     sweetAlert(3, 'No hay datos de la tarjeta. Error', null);

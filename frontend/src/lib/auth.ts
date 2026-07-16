@@ -1,5 +1,5 @@
 /**
- * @file Utilidades de autenticación: URL base, renovación de tokens y fetch autenticado.
+ * @file Utilidades de autenticación: URL base, guards de sesión, renovación de tokens y fetch autenticado.
  */
 
 /** Tipo de token JWT a usar en peticiones autenticadas. */
@@ -18,6 +18,24 @@ export function getApiBase(): string {
     }
   }
   return import.meta.env.VITE_API_URL ?? '';
+}
+
+/** Redirige a login si no hay access token de usuario (páginas autenticadas). */
+export function requireUserSession(redirectTo = '/pages/login.html'): boolean {
+  if (!localStorage.getItem('token_usuario')) {
+    location.href = redirectTo;
+    return false;
+  }
+  return true;
+}
+
+/** Redirige a login si no hay token de tarjeta. */
+export function requireCardSession(redirectTo = '/pages/login.html'): boolean {
+  if (!localStorage.getItem('token_tarjeta')) {
+    location.href = redirectTo;
+    return false;
+  }
+  return true;
 }
 
 /**
