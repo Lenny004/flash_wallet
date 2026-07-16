@@ -14,6 +14,26 @@ const urlApiLogin = `${getApiBase()}/api/usuarios/`;
 type TipoAlerta = 1 | 2 | 3 | 4 | 5;
 
 /**
+ * Normaliza el `detail` de FastAPI (string, lista de errores de validación u objeto).
+ */
+function mensajeDesdeDetail(detail: unknown, fallback = 'Error desconocido'): string {
+  if (typeof detail === 'string' && detail.trim() !== '') {
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    const partes = detail.map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object' && 'msg' in item) {
+        return String((item as { msg: unknown }).msg);
+      }
+      return '';
+    }).filter(Boolean);
+    if (partes.length > 0) return partes.join(' ');
+  }
+  return fallback;
+}
+
+/**
  * Muestra una alerta SweetAlert según el tipo indicado.
  * @param tipoAlerta - 1 éxito, 2 error, 3 advertencia, 4 aviso, 5 campos vacíos.
  * @param texto - Mensaje a mostrar al usuario.
@@ -45,37 +65,19 @@ function mostrarAlerta(tipoAlerta: TipoAlerta, texto: string, urlRedireccion?: s
       break;
   }
 
-  if (urlRedireccion) {
-    Swal.fire({
-      title: titulo,
-      text: texto,
-      icon: icono,
-      confirmButtonText: 'Aceptar',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      allowEnterKey: true,
-      stopKeydownPropagation: false,
-    }).then(() => {
+  void Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: icono,
+    confirmButtonText: 'Aceptar',
+    allowOutsideClick: Boolean(urlRedireccion),
+    allowEscapeKey: true,
+    allowEnterKey: true,
+  }).then(() => {
+    if (urlRedireccion) {
       location.href = urlRedireccion;
-    });
-  } else {
-    Swal.fire({
-      toast: true,
-      position: 'bottom-end',
-      timer: 5000,
-      timerProgressBar: true,
-      title: titulo,
-      text: texto,
-      icon: icono,
-      color: '#9e2d2d',
-      background: '#fffff',
-      customClass: {
-        popup: 'custom-swal-popup',
-      },
-      showConfirmButton: false,
-      stopKeydownPropagation: false,
-    });
-  }
+    }
+  });
 }
 
 /** Respuesta del GET inicial que verifica sesión y existencia de usuarios. */
@@ -92,63 +94,70 @@ interface RespuestaLogin {
   token_tarjeta?: string;
   refresh_token?: string;
   mensaje?: string;
-  detail?: string;
+  detail?: unknown;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   fetch(urlApiLogin, { method: 'GET' })
     .then((respuestaApi) => {
       if (respuestaApi.ok) {
-        respuestaApi.json().then((datos: RespuestaVerificacionUsuarios) => {
+        return respuestaApi.json().then((datos: RespuestaVerificacionUsuarios) => {
           if (datos.session) {
             location.href = 'dashboard.html';
           } else if (datos.hay_usuarios === false || datos.estado === 0) {
             mostrarAlerta(3, datos.exception || 'No hay usuarios registrados.', 'registro.html');
-          } else {
-            Swal.fire({
-              title: 'Bienvenido a Flash',
-              text: 'Ya puede ingresar al sistema',
-              imageUrl: '/resources/imgs/Flash_logo.png',
-              imageWidth: 80,
-              imageHeight: 80,
-              imageAlt: 'Custom image',
-              confirmButtonText: 'Continuar',
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: true,
-              stopKeydownPropagation: false,
-            });
           }
         });
-      } else {
-        mostrarAlerta(3, 'No se pudo verificar el estado de usuarios.');
       }
+      mostrarAlerta(3, 'No se pudo verificar el estado de usuarios.');
     })
     .catch((error: unknown) => {
       console.error('Error en la petición:', error);
+      mostrarAlerta(2, 'No se pudo conectar con el servidor. ¿Está la API en marcha?');
     });
 });
 
 const formularioLogin = document.getElementById('login_form');
+const botonSubmit = formularioLogin?.querySelector<HTMLInputElement>('input[type="submit"]');
+
 formularioLogin?.addEventListener('submit', (evento) => {
   evento.preventDefault();
 
-  const usuario = (document.getElementById('usuario') as HTMLInputElement).value;
+  const usuario = (document.getElementById('usuario') as HTMLInputElement).value.trim();
   const contra = (document.getElementById('contra') as HTMLInputElement).value;
+
+  if (!usuario || !contra) {
+    mostrarAlerta(5, 'Completa usuario y contraseña.');
+    return;
+  }
+
+  if (contra.length < 6) {
+    mostrarAlerta(2, 'La contraseña debe tener al menos 6 caracteres.');
+    return;
+  }
+
+  if (botonSubmit) {
+    botonSubmit.disabled = true;
+    botonSubmit.value = 'Ingresando…';
+  }
 
   fetch(`${urlApiLogin}login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ usuario, contra }),
   })
-    .then((respuestaApi) =>
-      respuestaApi.json().then((datos: RespuestaLogin) => {
-        if (!respuestaApi.ok) {
-          throw new Error(datos.detail || 'Error desconocido');
-        }
-        return datos;
-      }),
-    )
+    .then(async (respuestaApi) => {
+      let datos: RespuestaLogin = {};
+      try {
+        datos = (await respuestaApi.json()) as RespuestaLogin;
+      } catch {
+        throw new Error('Respuesta inválida del servidor.');
+      }
+      if (!respuestaApi.ok) {
+        throw new Error(mensajeDesdeDetail(datos.detail, `Error ${respuestaApi.status}`));
+      }
+      return datos;
+    })
     .then((datosLogin) => {
       if (datosLogin.token_usuario && datosLogin.token_tarjeta) {
         localStorage.setItem('token_usuario', datosLogin.token_usuario);
@@ -161,27 +170,38 @@ formularioLogin?.addEventListener('submit', (evento) => {
         mostrarAlerta(2, 'No se recibió un token válido del servidor.');
       }
     })
-    .catch((error: Error) => {
-      mostrarAlerta(2, error.message);
+    .catch((error: unknown) => {
+      const mensaje =
+        error instanceof Error && error.message
+          ? error.message
+          : 'No se pudo iniciar sesión.';
+      mostrarAlerta(2, mensaje);
+    })
+    .finally(() => {
+      if (botonSubmit) {
+        botonSubmit.disabled = false;
+        botonSubmit.value = 'Iniciar sesión';
+      }
     });
 });
 
 const botonTogglePassword = document.getElementById('togglePassword');
-botonTogglePassword && (botonTogglePassword.onclick = function (evento) {
-  evento.preventDefault();
-  evento.stopPropagation();
+botonTogglePassword &&
+  (botonTogglePassword.onclick = function (evento) {
+    evento.preventDefault();
+    evento.stopPropagation();
 
-  const campoPassword = document.getElementById('contra') as HTMLInputElement | null;
-  if (!campoPassword || !botonTogglePassword) return;
+    const campoPassword = document.getElementById('contra') as HTMLInputElement | null;
+    if (!campoPassword || !botonTogglePassword) return;
 
-  const mostrar = campoPassword.type === 'password';
-  campoPassword.type = mostrar ? 'text' : 'password';
+    const mostrar = campoPassword.type === 'password';
+    campoPassword.type = mostrar ? 'text' : 'password';
 
-  const iconoToggle = botonTogglePassword.querySelector('img');
-  if (iconoToggle) {
-    iconoToggle.setAttribute(
-      'src',
-      mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
-    );
-  }
-});
+    const iconoToggle = botonTogglePassword.querySelector('img');
+    if (iconoToggle) {
+      iconoToggle.setAttribute(
+        'src',
+        mostrar ? '/resources/icons/ver.png' : '/resources/icons/ocultar.png',
+      );
+    }
+  });

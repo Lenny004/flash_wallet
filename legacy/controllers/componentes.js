@@ -1,20 +1,20 @@
-// Asignar validaciones a los inputs correspondientes
+// Asignar validaciones a los inputs correspondientes (solo si existen en la página)
 document.addEventListener('DOMContentLoaded', () => {
     // Número de tarjeta: solo números y formato con guiones
     const numeroTarjetaInput = document.getElementById('numero_t');
-    numeroTarjetaInput.addEventListener('input', formatearNumeroTarjeta);
+    numeroTarjetaInput?.addEventListener('input', formatearNumeroTarjeta);
 
     // CVC: solo números y máximo 4 dígitos
     const cvcInput = document.getElementById('cvc');
-    cvcInput.addEventListener('input', validarCVC);
+    cvcInput?.addEventListener('input', validarCVC);
 
     // Nombre titular: solo letras y espacios
     const nombreTitularInput = document.getElementById('nombre_titular');
-    nombreTitularInput.addEventListener('keypress', permitirSoloLetras);
+    nombreTitularInput?.addEventListener('keypress', permitirSoloLetras);
 
     // Monto: solo números
     const montoInput = document.getElementById('monto_agregado');
-    montoInput.addEventListener('input', permitirSoloNumeros);
+    montoInput?.addEventListener('input', permitirSoloNumeros);
 });
 
 // Validar solo letras para nombres y apellidos
