@@ -83,7 +83,7 @@ Servicio `api` en `docker-compose.yml`:
     environment:
       DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-flash_dev}@db:3306/${MYSQL_DATABASE:-dbflash}
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -139,7 +139,7 @@ Todas viven en `.env` (no versionado). Ver [.env.example](../.env.example) en la
 | `SECRET_KEY` | (token_hex 32) | Firma de JWT (rotada) |
 | `CORS_ORIGINS` | `http://localhost:5173` | Orígenes permitidos |
 | `JWT_EXPIRE_MINUTES` | `15` | Expiración del access token |
-| `VITE_API_URL` | `http://localhost:8000` | Base URL del frontend |
+| `VITE_API_URL` | (vacío en Vite) | Base URL del frontend; vacío usa proxy |
 
 ## Healthchecks
 
