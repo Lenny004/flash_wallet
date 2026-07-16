@@ -16,7 +16,7 @@ CREATE TABLE tbusuario(
 CREATE TABLE tbtarjeta_digital(
 	id_tarjeta INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     pan VARCHAR(19) NOT NULL UNIQUE,
-    cvc TINYINT UNSIGNED,
+    cvc SMALLINT UNSIGNED NOT NULL,
     balance DECIMAL(7,2) NOT NULL,
     fecha_creacion DATE NOT NULL,
     fecha_actualizacion DATETIME NOT NULL,

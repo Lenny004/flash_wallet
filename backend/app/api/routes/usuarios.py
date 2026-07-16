@@ -4,15 +4,18 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, verificar_token_U
 from app.api.routes.tarjeta import crear_tarjeta_usuario
+from app.core.password_reset import consumir_codigo, generar_codigo, guardar_codigo
 from app.core.rate_limit import rate_limit
 from app.core.security import crear_access_token, crear_refresh_token, verificar_refresh_token
 from app.core.token_blacklist import revoke
 from app.models.tarjeta import Tarjeta
 from app.models.usuarios import Usuario
 from app.schemas.usuario_schema import (
+    ForgotPasswordRequest,
     HayUsuariosResponse,
     LoginRequest,
     RefreshRequest,
+    ResetPasswordRequest,
     UsuarioCreate,
     UsuarioUpdate,
 )
@@ -243,4 +246,66 @@ def actualizar_usuario(body: UsuarioUpdate, datos_usuario=Depends(verificar_toke
             "direccion": usuario_encontrado.direccion,
             "img_usuario": usuario_encontrado.img_usuario,
         },
+    }
+
+
+@routerUsuario.post("/forgot-password")
+def solicitar_recuperacion(request: Request, body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Genera un código de recuperación para el email indicado.
+    Auth: no requerida (rate limit por IP).
+
+    Sin SMTP configurado, el código se devuelve en la respuesta para completar el flujo.
+    El mensaje genérico evita filtrar si el correo existe cuando no se genera código.
+    """
+    ip_cliente = request.client.host if request.client else "unknown"
+    rate_limit(f"forgot:{ip_cliente}", limit=5, window=60)
+
+    mensaje_generico = (
+        "Si el correo está registrado, recibirás un código para restablecer tu contraseña."
+    )
+    usuario_encontrado = db.query(Usuario).filter(Usuario.email == body.email).first()
+    if not usuario_encontrado:
+        return {"estado": 1, "mensaje": mensaje_generico}
+
+    codigo = generar_codigo()
+    guardar_codigo(body.email, codigo, usuario_encontrado.id_usuario)
+
+    return {
+        "estado": 1,
+        "mensaje": (
+            f"{mensaje_generico} "
+            "Aún no hay envío de correo: usa el código mostrado (válido 15 minutos)."
+        ),
+        "codigo": codigo,
+        "expira_minutos": 15,
+    }
+
+
+@routerUsuario.post("/reset-password")
+def restablecer_contrasena(request: Request, body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Restablece la contraseña con el código de verificación.
+    Auth: no requerida (rate limit por IP).
+    """
+    ip_cliente = request.client.host if request.client else "unknown"
+    rate_limit(f"reset:{ip_cliente}", limit=5, window=60)
+
+    if not body.codigo.isdigit():
+        raise HTTPException(status_code=400, detail="El código debe ser numérico de 6 dígitos.")
+
+    id_usuario = consumir_codigo(body.email, body.codigo)
+    if id_usuario is None:
+        raise HTTPException(status_code=400, detail="Código inválido o expirado.")
+
+    usuario_encontrado = db.query(Usuario).filter(Usuario.id_usuario == id_usuario).first()
+    if not usuario_encontrado:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+
+    usuario_encontrado.contra = pwd_context.hash(body.nueva_contra)
+    db.commit()
+
+    return {
+        "estado": 1,
+        "mensaje": "Contraseña actualizada correctamente. Ya puedes iniciar sesión.",
     }

@@ -20,25 +20,29 @@
         </div>
         <div class="form-container">
             <form id="perfil_form" action="post" class="form" autocomplete="off">
-                <label for="nombres" class="label">Nombres</label>
+                <label for="nombres" class="label">Nombres <span class="required">*</span></label>
                 <input type="text" class="input" id="nombres" name="nombres" placeholder="Nombre" maxlength="50"
                     required>
-                <label for="apellidos" class="label">Apellidos</label>
+                <label for="apellidos" class="label">Apellidos <span class="required">*</span></label>
                 <input type="text" class="input" id="apellidos" name="apellidos" placeholder="Apellidos" maxlength="50"
                     required>
-                <label for="correo" class="label">Correo</label>
+                <label for="correo" class="label">Correo <span class="required">*</span></label>
                 <input type="email" class="input" id="correo" name="email" placeholder="correo@gmail.com"
                     maxlength="50" required>
-                <label for="usuario" class="label">Usuario</label>
+                <label for="usuario" class="label">Usuario <span class="required">*</span></label>
                 <input type="text" class="input" id="usuario" name="usuario" placeholder="usuario" maxlength="50"
                     required>
-                <label for="contra" class="label">Contraseña</label>
-                <input type="password" class="input" id="contra" name="contra" maxlength="50"
-                    required>
-                <label for="direccion" class="label">Dirección</label>
+                <label for="contra" class="label">Contraseña <span class="required">*</span></label>
+                <div class="password-field">
+                    <input type="password" class="input" id="contra" name="contra" maxlength="50" required>
+                    <button type="button" class="toggle-password" id="togglePassword" data-toggle-password="#contra" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <img class="toggle-password__icon" src="/resources/icons/ocultar.png" alt="">
+                    </button>
+                </div>
+                <label for="direccion" class="label">Dirección <span class="required">*</span></label>
                 <input type="text" class="input" id="direccion" name="direccion" placeholder="Address" maxlength="150"
                     required>
-                <label for="telefono" class="label">Teléfono</label>
+                <label for="telefono" class="label">Teléfono <span class="required">*</span></label>
                 <input type="text" class="input" id="telefono" name="telefono" placeholder="+503 00000000"
                     maxlength="15" required>
                 <input type="submit" value="Crear Cuenta" class="btn primary-button">
@@ -47,6 +51,7 @@
     </main>
     <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
     <script src="/controllers/config.js"></script>
+    <script src="/controllers/toggle_password.js"></script>
     <script type="module" src="/src/pages/registro.ts"></script>
 </body>
 

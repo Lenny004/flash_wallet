@@ -19,20 +19,23 @@
             <p>Inicia sesión para acceder a tu cuenta</p>
             <form id="login_form" action="post" class="form" autocomplete="off">
                 <div class="input-group input">
-                    <label for="usuario"><img src="/resources/icons/mail_red.png" alt="Correo"></label>
-                    <input type="text" class="input" id="usuario" name="usuario" placeholder="correo@gmail.com" maxlength="50" required>
+                    <label for="usuario"><img src="/resources/icons/mail_red.png" alt="Usuario"></label>
+                    <input type="text" class="input" id="usuario" name="usuario" placeholder="Usuario *" maxlength="50" required aria-label="Usuario *">
                 </div>
                 <div class="input-group input">
                     <label for="contra"><img src="/resources/icons/password_red.png" alt="Contraseña"></label>
-                    <input type="password" class="input" id="contra" name="contra" maxlength="50"
-                    required>
+                    <input type="password" class="input" id="contra" name="contra" placeholder="Contraseña *" maxlength="50"
+                    required aria-label="Contraseña *">
                     <span class="toggle-password" id="togglePassword">
                         <label for="contra"><img src="/resources/icons/ocultar.png" alt="Contraseña"></label>
                     </span>
                 </div>
                 <input type="submit" value="Iniciar sesión" class="btn primary-button">
             </form>
-            <a href="registro.html" class="subrayar">Crear cuenta</a>
+            <div class="login-links">
+                <a href="olvidar_contrasena.html" class="subrayar">¿Olvidaste tu contraseña?</a>
+                <a href="registro.html" class="subrayar">Crear cuenta</a>
+            </div>
         </div>
     </main>
     <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>

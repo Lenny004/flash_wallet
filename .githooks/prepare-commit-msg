@@ -1,0 +1,14 @@
+#!/bin/sh
+# Elimina trailers de atribución de Cursor del mensaje de commit.
+MSG_FILE="$1"
+[ -f "$MSG_FILE" ] || exit 0
+
+# Compatible con Git Bash / sh en Windows y Unix
+tmp="${MSG_FILE}.tmp"
+grep -viE \
+  -e '^[[:space:]]*Co-authored-by:[[:space:]]*Cursor[[:space:]]*<cursoragent@cursor\.com>[[:space:]]*$' \
+  -e '^[[:space:]]*Made-with:[[:space:]]*Cursor[[:space:]]*$' \
+  -e '^[[:space:]]*Made with Cursor[[:space:]]*$' \
+  "$MSG_FILE" > "$tmp" 2>/dev/null && mv "$tmp" "$MSG_FILE" || rm -f "$tmp"
+
+exit 0

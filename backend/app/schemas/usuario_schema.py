@@ -39,6 +39,20 @@ class UsuarioUpdate(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ForgotPasswordRequest(BaseModel):
+    """Solicitud de recuperación de contraseña por correo."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Restablecimiento de contraseña con código de verificación."""
+
+    email: EmailStr
+    codigo: str = Field(..., min_length=6, max_length=6)
+    nueva_contra: str = Field(..., min_length=6, max_length=50)
+
+
 class HayUsuariosResponse(BaseModel):
     """Indica si ya existen usuarios registrados (primer uso)."""
 

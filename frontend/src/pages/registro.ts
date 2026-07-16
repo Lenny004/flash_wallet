@@ -132,3 +132,4 @@ formularioRegistro?.addEventListener('submit', (evento) => {
       mostrarAlerta(2, error.message);
     });
 });
+// Visibilidad de contraseña: /controllers/toggle_password.js

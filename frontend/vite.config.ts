@@ -33,6 +33,7 @@ export default defineConfig({
         perfil: resolve(root, 'pages/perfil.html'),
         historial_pago: resolve(root, 'pages/historial_pago.html'),
         tarjeta_digital: resolve(root, 'pages/tarjeta_digital.html'),
+        olvidar_contrasena: resolve(root, 'pages/olvidar_contrasena.html'),
       },
     },
   },
