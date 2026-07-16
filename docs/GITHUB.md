@@ -6,15 +6,36 @@
 - **Nombre:** `flash_wallet`
 - **Descripción:** `Billetera digital con tarjeta virtual, pagos QR de servicios, recargas y facturacion - FastAPI + MySQL`
 - **Topics:** `fastapi`, `digital-wallet`, `qr-payments`, `fintech`, `sqlalchemy`, `mysql`, `docker`, `python`
-- **Rama por defecto:** `main` (protegida; no hacer push directo)
-- **Rama de trabajo:** `develop` (push inicial y desarrollo diario)
+- **Rama base:** `main` — releases estables; protegida, sin push directo.
+- **Rama de trabajo:** `develop` — integración y desarrollo diario.
+- **Rama por defecto recomendada:** `develop` (trabajo diario) o `main` si prefieres que los clones partan de producción; en ambos casos los cambios llegan a `main` solo vía PR.
 - **Licencia:** MIT
 
 ## Flujo de ramas
 
+Existen dos ramas permanentes:
+
+| Rama | Rol |
+|------|-----|
+| `main` | Base / producción — solo merges de release |
+| `develop` | Trabajo e integración continua |
+
 - Todo el trabajo va en `develop` o en ramas derivadas (`feature/*`, `fix/*`, `chore/*`).
-- **No subir directamente a `main`.** Los cambios llegan a `main` solo vía PR cuando corresponda.
-- El push inicial ya se hace a `origin/develop`.
+- **No subir directamente a `main`.** Los cambios llegan a `main` solo vía PR (release).
+- Push diario a `origin/develop`.
+
+### PR `develop` → `main` (release)
+
+1. Asegúrate de que `develop` está actualizada y los checks pasan.
+2. Abre el compare en GitHub: [main...develop](https://github.com/Lenny004/flash_wallet/compare/main...develop?expand=1)
+3. Crea el PR, revisa y mergea cuando corresponda un release.
+
+Con CLI (requiere `gh auth login` antes):
+
+```bash
+gh auth login
+gh pr create --base main --head develop --title "release: vX.Y.Z" --body "Release desde develop"
+```
 
 ## Antes del primer push (obligatorio)
 
@@ -39,7 +60,7 @@
 
 ## Comandos git / gh (referencia)
 
-> Requiere `git` y `gh` (GitHub CLI) autenticado.
+> Requiere `git` y `gh` (GitHub CLI). Si `gh` falla con error de autenticación, ejecuta `gh auth login` una vez.
 
 ```bash
 # Clonar (si partes de cero)

@@ -23,7 +23,7 @@ frontend/
 └── package.json
 ```
 
-Las carpetas `views/`, `css/`, `controllers/`, `resources/` y `fonts/` en la raíz del repo siguen existiendo para XAMPP legacy.
+El prototipo XAMPP original (`views/`, `css/`, `controllers/`, `resources/`, `fonts/`, `api/`) está archivado en [`../legacy/`](../legacy/README.md) en la raíz del repo.
 
 ## Requisitos
 

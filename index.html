@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flash Wallet</title>
+  <style>
+    :root {
+      --rojo: #9e2d2d;
+      --fondo: #f7f7f7;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at top, #fff 0%, var(--fondo) 55%, #ebe3e3 100%);
+      color: #222;
+    }
+    main {
+      max-width: 28rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 { color: var(--rojo); margin-bottom: 0.5rem; }
+    p { line-height: 1.5; }
+    a.btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: var(--rojo);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    code { background: #eee; padding: 0.1rem 0.35rem; }
+    .muted { color: #666; font-size: 0.9rem; margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Flash</h1>
+    <p>
+      El frontend activo ya no se sirve desde XAMPP (<code>views/</code>).
+      Usa Vite en el puerto <strong>5173</strong>.
+    </p>
+    <a class="btn" href="http://localhost:5173/pages/login.html">Abrir login (Vite)</a>
+    <p class="muted">
+      Si no abre: ejecuta <code>.\start-dev.ps1</code><br />
+      API en <code>http://127.0.0.1:8001</code> · Frontend en <code>:5173</code>
+    </p>
+  </main>
+  <script>
+    // Intenta Vite primero; si responde, redirige automáticamente.
+    fetch('http://localhost:5173/pages/login.html', { mode: 'no-cors' })
+      .then(function () {
+        window.location.href = 'http://localhost:5173/pages/login.html';
+      })
+      .catch(function () { /* muestra la página de ayuda */ });
+  </script>
+</body>
+</html>

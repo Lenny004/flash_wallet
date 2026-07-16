@@ -2,7 +2,10 @@
  * @file Página de pagos pendientes: listado de transacciones/servicios por pagar.
  */
 
-import { apiFetchAuth, getApiBase } from '../lib/auth';
+import { apiFetchAuth, getApiBase, requireCardSession, requireUserSession } from '../lib/auth';
+
+/** Guard de sesión: requiere tokens de usuario y tarjeta. */
+const sesionOk = requireUserSession() && requireCardSession();
 
 declare function sweetAlert(type: 1 | 2 | 3 | 4 | 5, text: string, url?: string | null): void;
 
@@ -103,10 +106,6 @@ function renderizarTarjetas(registros: FilaTransaccion[]): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const tokenUsuario = localStorage.getItem('token_usuario');
-  if (!tokenUsuario) {
-    sweetAlert(3, 'No hay sesión activa. Redirigiendo al login...', 'login.html');
-    return;
-  }
+  if (!sesionOk) return;
   cargarTransacciones(`${urlApiTransaccion}read`);
 });

@@ -2,9 +2,10 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # backend/app/core/config.py → raíz del proyecto (Flash/)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -30,7 +31,12 @@ class Settings(BaseSettings):
     jwt_refresh_expire_days: int = 7
 
     # --- CORS y API interna ---
-    cors_origins: list[str] = ["http://localhost", "http://127.0.0.1"]
+    # NoDecode evita que pydantic-settings intente JSON en CORS_ORIGINS=a,b,c
+    cors_origins: Annotated[list[str], NoDecode] = [
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://localhost:5173",
+    ]
     internal_api_token: str = "dev-internal-token"
 
     # --- Workers e intents QR ---
@@ -40,14 +46,7 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
-        """Convierte una cadena separada por comas en lista de orígenes CORS.
-
-        Args:
-            value: Lista ya parseada o cadena ``"http://a,http://b"``.
-
-        Returns:
-            Lista de orígenes sin espacios en blanco.
-        """
+        """Convierte una cadena separada por comas en lista de orígenes CORS."""
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value

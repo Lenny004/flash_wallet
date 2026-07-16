@@ -2,7 +2,10 @@
  * @file Página de recarga de saldo: consulta monto mínimo y procesa recargas.
  */
 
-import { apiFetchAuth, getApiBase } from '../lib/auth';
+import { apiFetchAuth, getApiBase, requireCardSession } from '../lib/auth';
+
+/** Guard de sesión: requiere token de tarjeta. */
+const sesionOk = requireCardSession();
 
 declare function sweetAlert(type: 1 | 2 | 3 | 4 | 5, text: string, url?: string | null): void;
 
@@ -63,11 +66,13 @@ function obtenerMontoMinimo(): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!sesionOk) return;
   obtenerMontoMinimo();
 });
 
 const formularioRecarga = document.getElementById('recarga_form');
 formularioRecarga?.addEventListener('submit', (evento) => {
+  if (!sesionOk) return;
   evento.preventDefault();
   if (!localStorage.getItem('token_tarjeta')) {
     sweetAlert(3, 'No hay datos de la tarjeta. Error', null);

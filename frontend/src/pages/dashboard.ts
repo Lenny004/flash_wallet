@@ -2,7 +2,10 @@
  * @file Panel principal (dashboard): historial de recargas, movimientos, datos de tarjeta y búsqueda.
  */
 
-import { apiFetchAuth, getApiBase } from '../lib/auth';
+import { apiFetchAuth, getApiBase, requireCardSession } from '../lib/auth';
+
+/** Guard de sesión: requiere token de tarjeta. */
+const sesionOk = requireCardSession();
 
 declare const Swal: {
   fire: (options: Record<string, unknown>) => Promise<{ isConfirmed?: boolean }>;
@@ -381,6 +384,7 @@ function openDelete(idHistorial: number): void {
 window.openDelete = openDelete;
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!sesionOk) return;
   cargarHistorial(`${urlApiHistorial}read`);
   cargarDatosTarjeta();
   cargarMovimientos();
@@ -388,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const formularioBuscador = document.getElementById('buscador-form');
 formularioBuscador?.addEventListener('submit', (evento) => {
+  if (!sesionOk) return;
   evento.preventDefault();
   const monto_agregado = (document.getElementById('buscar') as HTMLInputElement).value;
   apiFetchAuth(`${urlApiHistorial}buscar`, {
