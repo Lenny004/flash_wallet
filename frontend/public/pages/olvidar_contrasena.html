@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Flash — Recuperar contraseña</title>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+    <link type="text/css" rel="stylesheet" href="/css/fuente.css">
+    <link rel="icon" type="icon/png" href="/resources/imgs/Flash_logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+
+<body>
+    <main class="dashboard">
+        <div class="logo">
+            <img src="/resources/imgs/Flash_logo.png" alt="Logo">
+        </div>
+        <div class="login-form borde">
+            <h2>Recuperar contraseña</h2>
+            <p id="paso-descripcion">Ingresa el correo de tu cuenta para recibir un código</p>
+
+            <form id="forgot_form" class="form" autocomplete="off">
+                <label for="email" class="label">Correo <span class="required">*</span></label>
+                <input type="email" class="input" id="email" name="email" placeholder="correo@gmail.com" maxlength="50" required>
+
+                <div id="paso-codigo" class="paso-oculto">
+                    <label for="codigo" class="label">Código <span class="required">*</span></label>
+                    <input type="text" class="input" id="codigo" name="codigo" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
+
+                    <label for="nueva_contra" class="label">Nueva contraseña <span class="required">*</span></label>
+                    <input type="password" class="input" id="nueva_contra" name="nueva_contra" maxlength="50" minlength="6">
+
+                    <label for="confirmar_contra" class="label">Confirmar contraseña <span class="required">*</span></label>
+                    <input type="password" class="input" id="confirmar_contra" name="confirmar_contra" maxlength="50" minlength="6">
+                </div>
+
+                <input type="submit" id="btn_recuperar" value="Enviar código" class="btn primary-button">
+            </form>
+
+            <a href="login.html" class="subrayar">Volver al inicio de sesión</a>
+        </div>
+    </main>
+    <script type="text/javascript" src="/resources/js/sweetalert2.all.min.js"></script>
+    <script src="/controllers/config.js"></script>
+    <script type="module" src="/src/pages/olvidar_contrasena.ts"></script>
+</body>
+</html>

@@ -132,3 +132,17 @@ formularioRegistro?.addEventListener('submit', (evento) => {
       mostrarAlerta(2, error.message);
     });
 });
+
+const botonTogglePassword = document.getElementById('togglePassword');
+botonTogglePassword?.addEventListener('click', function (this: HTMLElement) {
+  const campoPassword = document.getElementById('contra') as HTMLInputElement;
+  const iconoToggle = this.querySelector('img');
+
+  if (campoPassword.type === 'password') {
+    campoPassword.type = 'text';
+    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ver.png');
+  } else {
+    campoPassword.type = 'password';
+    if (iconoToggle) iconoToggle.setAttribute('src', '/resources/icons/ocultar.png');
+  }
+});

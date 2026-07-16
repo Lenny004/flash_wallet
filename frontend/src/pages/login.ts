@@ -133,7 +133,7 @@ const formularioLogin = document.getElementById('login_form');
 formularioLogin?.addEventListener('submit', (evento) => {
   evento.preventDefault();
 
-  const usuario = (document.getElementById('usuario') as HTMLInputElement).value;
+  const usuario = (document.getElementById('usuario') as HTMLInputElement).value.trim();
   const contra = (document.getElementById('contra') as HTMLInputElement).value;
 
   fetch(`${urlApiLogin}login`, {

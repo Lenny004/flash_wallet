@@ -17,9 +17,9 @@ class UsuarioCreate(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    """Credenciales para inicio de sesión."""
+    """Credenciales para inicio de sesión (usuario o email + contraseña)."""
 
-    usuario: str = Field(..., max_length=50)
+    usuario: str = Field(..., max_length=50, description="Nombre de usuario o correo electrónico")
     contra: str = Field(..., min_length=6)
 
 
@@ -37,6 +37,20 @@ class UsuarioUpdate(BaseModel):
     email: EmailStr
 
     model_config = {"from_attributes": True}
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Solicitud de recuperación de contraseña por correo."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Restablecimiento de contraseña con código de verificación."""
+
+    email: EmailStr
+    codigo: str = Field(..., min_length=6, max_length=6)
+    nueva_contra: str = Field(..., min_length=6, max_length=50)
 
 
 class HayUsuariosResponse(BaseModel):
